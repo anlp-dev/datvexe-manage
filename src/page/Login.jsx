@@ -5,7 +5,6 @@ import Checkbox from '@mui/material/Checkbox';
 import CssBaseline from '@mui/material/CssBaseline';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Divider from '@mui/material/Divider';
-import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
@@ -13,16 +12,8 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import {keyframes, styled} from '@mui/material/styles';
-import ForgotPassword from '../components/login-signin/ForgotPassword.jsx';
-import {GoogleIcon, FacebookIcon} from '../components/login-signin/CustomIcon.jsx';
-import authService from "../services/AuthService.jsx";
 import {useNavigate} from "react-router-dom";
-import Snackbar from '@mui/material/Snackbar';
-import {CircularProgress} from "@mui/material";
-import ReactLoading from 'react-loading';
-import {Message} from '../enums/Message.jsx'
 import Loading from "../components/loading/Loading.jsx";
-import Notification from "../components/notification/Notification.jsx";
 import {notifySuccess, notifyError, notifyInfo} from "../components/notification/ToastNotification.jsx";
 
 const fadeIn = keyframes(`from {
@@ -33,19 +24,6 @@ const fadeIn = keyframes(`from {
         opacity: 1;
         transform: translateY(0);
     }`)
-
-const sparkle = keyframes(`0% {
-        opacity: 0;
-        transform: translate(0, 0);
-    }
-    50% {
-        opacity: 1;
-        transform: translate(5px, -10px);
-}
-    100% {
-        opacity: 0;
-        transform: translate(10px, -20px);
-}`)
 
 const Card = styled(MuiCard)(({theme}) => ({
     display: 'flex',
@@ -115,24 +93,14 @@ const Login = () => {
         }
         const data = new FormData(event.currentTarget);
         try {
-            const res_login = await authService.login(data);
-            console.log(res_login)
-            if (res_login.status === 400) {
-                throw new Error(res_login.message);
-            }
-            if(res_login.status === 200) {
-                localStorage.setItem('token', res_login?.token);
-                document.title = 'Đợi một chút ...'
-                notifySuccess(Message.LOGIN_SUCCESS);
-                setIsLoading(true);
-                setTimeout(() => {
-                    setIsLoading(false)
-                    navigate("/home");
-                }, 500)
-            }
+            setIsLoading(true)
+            console.log(data);
+            notifyInfo('Tesst')
         } catch (e) {
             notifyError(e.message)
             console.log(e.message)
+        }finally {
+            setIsLoading(false)
         }
     };
 
@@ -237,7 +205,6 @@ const Login = () => {
                             control={<Checkbox value="remember" color="primary"/>}
                             label="Remember me"
                         />
-                        <ForgotPassword open={open} handleClose={handleClose}/>
                         <Button
                             type="submit"
                             fullWidth
@@ -255,35 +222,6 @@ const Login = () => {
                         >
                             Quên mật khẩu
                         </Link>
-                    </Box>
-                    <Divider>or</Divider>
-                    <Box sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            onClick={() => alert('Sign in with Google')}
-                            startIcon={<GoogleIcon/>}
-                        >
-                            Đăng nhập bằng Google
-                        </Button>
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            onClick={() => alert('Sign in with Facebook')}
-                            startIcon={<FacebookIcon/>}
-                        >
-                            Đăng nhập bằng Facebook
-                        </Button>
-                        <Typography sx={{textAlign: 'center'}}>
-                            Don&apos;t have an account?{' '}
-                            <Link
-                                href="/signup"
-                                variant="body2"
-                                sx={{alignSelf: 'center'}}
-                            >
-                                Đăng ký
-                            </Link>
-                        </Typography>
                     </Box>
                 </Card>
             </SignInContainer>
