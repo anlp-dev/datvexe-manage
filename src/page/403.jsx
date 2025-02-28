@@ -19,7 +19,7 @@ const AccessDeniedPage = () => {
             <Typography variant="body1" align="center" sx={{ color: '#666', marginBottom: 2 }}>
                 Bạn không có quyền truy cập vào trang này.
             </Typography>
-            <Button component={Link} to="/home" variant="contained" color="primary">
+            <Button component={Link} to="/" variant="contained" color="primary">
                 Quay về trang chủ
             </Button>
         </Container>

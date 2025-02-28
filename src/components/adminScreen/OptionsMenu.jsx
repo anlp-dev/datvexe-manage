@@ -10,6 +10,8 @@ import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import MenuButton from './MenuButton';
+import {notifyError, notifySuccess} from "../notification/ToastNotification.jsx";
+import {useNavigate} from "react-router-dom";
 
 const MenuItem = styled(MuiMenuItem)({
     margin: '2px 0',
@@ -18,12 +20,21 @@ const MenuItem = styled(MuiMenuItem)({
 export default function OptionsMenu() {
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
+    const navigate = useNavigate();
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
     };
     const handleClose = () => {
         setAnchorEl(null);
     };
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        navigate("/")
+        notifySuccess("Đăng xuất thành công!!!")
+
+        setAnchorEl(null)
+    }
     return (
         <React.Fragment>
             <MenuButton
@@ -60,7 +71,7 @@ export default function OptionsMenu() {
                 <MenuItem onClick={handleClose}>Settings</MenuItem>
                 <Divider />
                 <MenuItem
-                    onClick={handleClose}
+                    onClick={handleLogout}
                     sx={{
                         [`& .${listItemIconClasses.root}`]: {
                             ml: 'auto',

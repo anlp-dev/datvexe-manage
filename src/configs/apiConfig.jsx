@@ -1,4 +1,4 @@
-const API_BASE_URL_DEPLOY = '';
+const API_BASE_URL_DEPLOY = 'http://localhost:9999';
 
 const headers = {
     'Content-Type': 'application/json',
