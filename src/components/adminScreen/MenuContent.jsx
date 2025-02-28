@@ -13,13 +13,25 @@ import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
+import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydream';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import AirplaneTicketIcon from '@mui/icons-material/AirplaneTicket';
+import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
+import PaymentIcon from '@mui/icons-material/Payment';
+import FlagIcon from '@mui/icons-material/Flag';
 import {useLocation} from "react-router-dom";
 
 const mainListItems = [
     {text: 'Trang chủ', icon: <HomeRoundedIcon/>, path: "homeAdmin"},
     {text: 'Thống kê request', icon: <AnalyticsRoundedIcon/>, path: "logRequest"},
     {text: 'Quản trị người dùng', icon: <PeopleRoundedIcon/>, path: "manageUser"},
-    {text: 'Tasks', icon: <AssignmentRoundedIcon/>, path: "tasks"},
+    {text: 'Quản trị quyền', icon: <AssignmentRoundedIcon/>, path: "role"},
+    {text: 'Cấu hình hệ thống', icon: <SettingsSystemDaydreamIcon/>, path: "system"},
+    {text: 'Quản lý chuyến xe', icon: <DirectionsBusIcon/>, path: "busManager"},
+    {text: 'Quản lý vé', icon: <AirplaneTicketIcon/>, path: "ticket"},
+    {text: 'Quản lý xe', icon: <DepartureBoardIcon/>, path: "vehicle"},
+    {text: 'Quản lý thanh toán', icon: <PaymentIcon/>, path: "payment"},
+    {text: 'Báo cáo, thống kê', icon: <FlagIcon/>, path: "report"},
 ];
 
 const secondaryListItems = [

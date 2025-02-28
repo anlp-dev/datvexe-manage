@@ -148,9 +148,19 @@ const StatusAvatar = styled(Avatar)(({ theme, status }) => {
 const HomeAdmin = () => {
     return (
         <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
-                Dashboard Overview
-            </Typography>
+            <Box sx={{ mb: 5, display: 'flex', alignItems: 'center' }}>
+                <Typography
+                    variant="h4"
+                    sx={{
+                        fontWeight: 700,
+                        background: 'linear-gradient(45deg, #3f51b5 30%, #2196f3 90%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                    }}
+                >
+                    Tổng quan về bảng điều khiển
+                </Typography>
+            </Box>
 
             {/* Stats Cards */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
