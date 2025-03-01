@@ -22,7 +22,7 @@ const authService = {
             localStorage.setItem("token", data.data);
             return data;
         }catch (e) {
-            throw new Error(e);
+            throw new Error(e.message);
         }
     }
 }

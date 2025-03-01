@@ -16,8 +16,11 @@ import {
     DirectionsBus as BusIcon,
     Schedule as ScheduleIcon,
     AttachMoney as MoneyIcon,
-    TrendingUp as TrendingUpIcon
+    TrendingUp as TrendingUpIcon,
+    AutoFixHigh as GenerateIcon
 } from '@mui/icons-material';
+import {notifyError, notifySuccess} from "../../components/notification/ToastNotification.jsx";
+import apiConfig from "../../configs/apiConfig.jsx";
 
 // Dữ liệu mẫu
 const initialBuses = [
@@ -132,6 +135,12 @@ function BusManagementDashboard() {
         severity: 'success'
     });
 
+    // Thêm state cho dialog generate
+    const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
+    const [generateDate, setGenerateDate] = useState('');
+
+    console.log(generateDate, 'generateDate')
+
     const handleClickOpen = () => {
         setOpen(true);
         setIsEditing(false);
@@ -192,6 +201,40 @@ function BusManagementDashboard() {
             showSnackbar('Đã thêm chuyến xe mới thành công!', 'success');
         }
         handleClose();
+    };
+
+    // Hàm mở dialog generate
+    const handleOpenGenerateDialog = () => {
+        setGenerateDialogOpen(true);
+        setGenerateDate(new Date().toISOString().split('T')[0]); // Set ngày hiện tại
+    };
+
+    // Hàm đóng dialog generate
+    const handleCloseGenerateDialog = () => {
+        setGenerateDialogOpen(false);
+    };
+
+    // Hàm xử lý generate chuyến xe
+    const handleGenerateTrips = async () => {
+        try{
+            const token = localStorage.getItem("token")
+            const dataReq = {
+                dateReq: generateDate
+            }
+            const res = await fetch(`${apiConfig.baseUrl}/trip/generate`, {
+                method: "POST",
+                headers: apiConfig.getAuthHeaders(token),
+                body: JSON.stringify(dataReq)
+            })
+            const data = await res.json();
+            console.log(data);
+            if(!res.ok){
+                throw new Error(data.message)
+            }
+            notifySuccess(data.message);
+        }catch (e) {
+            notifyError(e.message);
+        }
     };
 
     const showSnackbar = (message, severity) => {
@@ -327,6 +370,15 @@ function BusManagementDashboard() {
                                 onClick={() => setBuses(initialBuses)}
                             >
                                 Làm mới
+                            </Button>
+                            {/* Thêm nút Generate Trip */}
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                startIcon={<GenerateIcon />}
+                                onClick={handleOpenGenerateDialog}
+                            >
+                                Tạo chuyến
                             </Button>
                             <Button
                                 variant="contained"
@@ -510,6 +562,42 @@ function BusManagementDashboard() {
                     <Button onClick={handleConfirmClose} variant="outlined" color="inherit">Hủy</Button>
                     <Button onClick={confirmDelete} variant="contained" color="error">
                         Xóa
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog Generate Trip */}
+            <Dialog open={generateDialogOpen} onClose={handleCloseGenerateDialog} maxWidth="sm" fullWidth>
+                <DialogTitle>Tạo chuyến xe theo ngày</DialogTitle>
+                <Divider />
+                <DialogContent>
+                    <Box sx={{ p: 2 }}>
+                        <Typography gutterBottom>
+                            Chọn ngày để tạo các chuyến xe tự động. Hệ thống sẽ tạo chuyến dựa trên lịch trình định sẵn.
+                        </Typography>
+                        <TextField
+                            label="Chọn ngày"
+                            type="date"
+                            value={generateDate}
+                            onChange={(e) => setGenerateDate(e.target.value)}
+                            fullWidth
+                            required
+                            margin="normal"
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 3 }}>
+                    <Button onClick={handleCloseGenerateDialog} variant="outlined" color="inherit">
+                        Hủy
+                    </Button>
+                    <Button
+                        onClick={handleGenerateTrips}
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<GenerateIcon />}
+                    >
+                        Tạo chuyến
                     </Button>
                 </DialogActions>
             </Dialog>

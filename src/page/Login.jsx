@@ -243,7 +243,6 @@ const Login = () => {
             }
         } catch (e) {
             notifyError(e.message);
-            console.log(e.message);
         } finally {
             setIsLoading(false);
         }
