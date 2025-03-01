@@ -133,27 +133,28 @@ const RequestLogsInterface = () => {
         try{
             setDataTable(data);
             const groupedData = {};
+
             data.forEach((d) => {
                 if (!d.createdAt) return; // Bỏ qua nếu không có createdAt
 
                 const date = new Date(d.createdAt);
-                const dateKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-                const hourKey = `${date.getHours().toString().padStart(2, '0')}:00`;
-                const fullKey = `${dateKey} ${hourKey}`; // Nhóm theo ngày + giờ
+                const dateKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`; // Nhóm theo ngày
 
-                if (!groupedData[fullKey]) {
-                    groupedData[fullKey] = { time: fullKey, success: 0, error: 0, warning: 0 };
+                if (!groupedData[dateKey]) {
+                    groupedData[dateKey] = { time: dateKey, success: 0, error: 0, warning: 0 };
                 }
 
                 if (d.statusCode >= 200 && d.statusCode < 300) {
-                    groupedData[fullKey].success++;
+                    groupedData[dateKey].success++;
                 } else if (d.statusCode >= 300 && d.statusCode < 400) {
-                    groupedData[fullKey].warning++;
+                    groupedData[dateKey].warning++;
                 } else if (d.statusCode >= 400) {
-                    groupedData[fullKey].error++;
+                    groupedData[dateKey].error++;
                 }
             });
-            setDataChart(Object.values(groupedData).sort((a, b) => a.time.localeCompare(b.time)))
+
+            setDataChart(Object.values(groupedData).sort((a, b) => a.time.localeCompare(b.time)));
+
         }catch (e) {
             notifyError(e.message)
         }
