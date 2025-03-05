@@ -28,8 +28,7 @@ export default function OptionsMenu() {
         setAnchorEl(null);
     };
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
+        localStorage.clear();
         navigate("/")
         notifySuccess("Đăng xuất thành công!!!")
 
