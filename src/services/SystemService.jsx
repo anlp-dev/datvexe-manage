@@ -1,25 +1,13 @@
-import apiConfig from "../configs/apiConfig.jsx";
+import { fetchWithAuth, handleApiError } from "../utils/fetchUtils";
 
 const SystemService = {
-    async getLogRequest(){
-        try{
-            const token = localStorage.getItem("token");
-            if(!token){
-                throw new Error("Đã hết hạn đăng nhập !!!")
-            }
-            const res = await fetch(`${apiConfig.baseUrl}/system/logRequest/get`, {
-                method: "GET",
-                headers: apiConfig.getAuthHeaders(token)
-            })
-            const data = await res.json();
-            if(!res.ok){
-                throw new Error(data.message);
-            }
-            return data;
-        }catch (e) {
-            throw new Error(e);
+    async getLogRequest() {
+        try {
+            return await fetchWithAuth('/system/logRequest/get');
+        } catch (error) {
+            throw handleApiError(error);
         }
     }
-}
+};
 
 export default SystemService;

@@ -5,15 +5,78 @@ import {
     Dialog, DialogActions, DialogContent, DialogTitle,
     FormControl, InputLabel, Select, MenuItem, IconButton,
     Chip, Snackbar, Alert, Tooltip, Divider, Card, CardContent,
-    OutlinedInput, InputAdornment
+    OutlinedInput, InputAdornment, Container, Avatar, alpha,
+    CardHeader
 } from '@mui/material';
 import {
     FilterList as FilterIcon, Print as PrintIcon,
     Receipt as ReceiptIcon, Search as SearchIcon,
     Clear as ClearIcon, CheckCircle as CheckCircleIcon,
     Cancel as CancelIcon, AccessTime as TimeIcon,
-    LocalActivity as TicketIcon, Close as CloseIcon
+    LocalActivity as TicketIcon, Close as CloseIcon,
+    ConfirmationNumber as TicketIcon2,
+    Payment as PaymentIcon,
+    EventBusy as CancelledIcon
 } from '@mui/icons-material';
+import { styled } from '@mui/material/styles';
+
+// Enhanced styled components
+const StyledCard = styled(Card)(({ theme }) => ({
+    overflow: "hidden",
+    marginTop: 60,
+    borderRadius: theme.spacing(2),
+    width: "100%",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+    transition: "transform 0.3s, box-shadow 0.3s",
+    "&:hover": {
+        transform: "translateY(-5px)",
+        boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+    },
+}));
+
+const StatsCard = styled(Paper)(({ theme, bgcolor }) => ({
+    padding: theme.spacing(3),
+    borderRadius: theme.spacing(2),
+    backgroundColor: bgcolor,
+    color: "#fff",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    position: "relative",
+    overflow: "hidden",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+    "&:hover": {
+        transform: "translateY(-5px)",
+        boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+        transition: "transform 0.3s, box-shadow 0.3s",
+    },
+    "&::after": {
+        content: '""',
+        position: "absolute",
+        top: 0,
+        right: 0,
+        width: "30%",
+        height: "100%",
+        backgroundColor: alpha("#fff", 0.1),
+        clipPath: "polygon(100% 0, 0 0, 100% 100%)",
+    },
+}));
+
+const SearchField = styled(TextField)(({ theme }) => ({
+    "& .MuiOutlinedInput-root": {
+        borderRadius: theme.spacing(3),
+        backgroundColor: alpha(theme.palette.common.white, 0.9),
+        boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+        transition: "all 0.3s",
+        "&:hover": {
+            boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+        },
+        "&.Mui-focused": {
+            boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+        },
+    },
+}));
 
 // Sample data
 const initialTickets = [
@@ -183,175 +246,293 @@ function TicketManagementDashboard() {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
-            {/* Header */}
-            <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-                <Grid container spacing={2} alignItems="center" justifyContent="space-between">
-                    <Grid item>
-                        <Typography variant="h4" gutterBottom>Quản lý Đặt vé</Typography>
-                        <Typography variant="subtitle1" color="text.secondary">
-                            Theo dõi và quản lý các vé đã đặt
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                        <OutlinedInput
-                            fullWidth
-                            placeholder="Tìm kiếm theo mã vé, tên KH hoặc SĐT"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                            startAdornment={<InputAdornment position="start"><SearchIcon /></InputAdornment>}
-                            endAdornment={searchTerm && (
-                                <InputAdornment position="end">
-                                    <IconButton onClick={() => setSearchTerm('')} edge="end" size="small">
-                                        <ClearIcon />
-                                    </IconButton>
-                                </InputAdornment>
-                            )}
-                        />
-                    </Grid>
-                    <Grid item>
-                        <Button
-                            variant="outlined"
-                            startIcon={<FilterIcon />}
-                            onClick={() => setFilterOpen(true)}
-                        >
-                            Lọc
-                            {Object.values(filters).some(x => x !== '' && x !== null) && (
-                                <Chip
-                                    size="small"
-                                    label={Object.values(filters).filter(x => x !== '' && x !== null).length}
-                                    color="primary"
-                                    sx={{ ml: 1 }}
-                                />
-                            )}
-                        </Button>
-                    </Grid>
-                </Grid>
-            </Paper>
+        <Container maxWidth={false}>
+            <Box sx={{ mb: 5, display: "flex", alignItems: "center" }}>
+                <Typography
+                    variant="h4"
+                    sx={{
+                        fontWeight: 700,
+                        background: "linear-gradient(45deg, #3f51b5 30%, #2196f3 90%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                    }}
+                >
+                    Quản lý vé xe
+                </Typography>
+            </Box>
 
-            {/* Summary Cards */}
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={6} md={3}>
-                    <Card sx={{ bgcolor: 'info.light' }}>
-                        <CardContent>
-                            <Typography variant="h6">Tổng số vé</Typography>
-                            <Typography variant="h3">{tickets.length}</Typography>
-                        </CardContent>
-                    </Card>
-                </Grid>
-                <Grid item xs={6} md={3}>
-                    <Card sx={{ bgcolor: 'warning.light' }}>
-                        <CardContent>
-                            <Typography variant="h6">Chờ thanh toán</Typography>
-                            <Typography variant="h3">
-                                {tickets.filter(t => t.status === 'Chờ thanh toán').length}
+            {/* Statistics Cards */}
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+                <Grid item xs={12} sm={4}>
+                    <StatsCard bgcolor="#3f51b5">
+                        <Box>
+                            <Typography variant="subtitle2" sx={{ opacity: 0.8, mb: 1 }}>
+                                Tổng số vé
                             </Typography>
-                        </CardContent>
-                    </Card>
+                            <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                                {tickets.length}
+                            </Typography>
+                        </Box>
+                        <Avatar
+                            sx={{
+                                bgcolor: alpha("#fff", 0.2),
+                                width: 56,
+                                height: 56,
+                                boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+                            }}
+                        >
+                            <TicketIcon2 fontSize="large" />
+                        </Avatar>
+                    </StatsCard>
                 </Grid>
-                <Grid item xs={6} md={3}>
-                    <Card sx={{ bgcolor: 'success.light' }}>
-                        <CardContent>
-                            <Typography variant="h6">Đã thanh toán</Typography>
-                            <Typography variant="h3">
+                <Grid item xs={12} sm={4}>
+                    <StatsCard bgcolor="#4caf50">
+                        <Box>
+                            <Typography variant="subtitle2" sx={{ opacity: 0.8, mb: 1 }}>
+                                Vé đã thanh toán
+                            </Typography>
+                            <Typography variant="h3" sx={{ fontWeight: 700 }}>
                                 {tickets.filter(t => t.status === 'Đã thanh toán' || t.status === 'Hoàn thành').length}
                             </Typography>
-                        </CardContent>
-                    </Card>
+                        </Box>
+                        <Avatar
+                            sx={{
+                                bgcolor: alpha("#fff", 0.2),
+                                width: 56,
+                                height: 56,
+                                boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+                            }}
+                        >
+                            <PaymentIcon fontSize="large" />
+                        </Avatar>
+                    </StatsCard>
                 </Grid>
-                <Grid item xs={6} md={3}>
-                    <Card sx={{ bgcolor: 'error.light' }}>
-                        <CardContent>
-                            <Typography variant="h6">Đã hủy</Typography>
-                            <Typography variant="h3">
-                                {tickets.filter(t => t.status === 'Hủy').length}
+                <Grid item xs={12} sm={4}>
+                    <StatsCard bgcolor="#ff9800">
+                        <Box>
+                            <Typography variant="subtitle2" sx={{ opacity: 0.8, mb: 1 }}>
+                                Vé chờ thanh toán
                             </Typography>
-                        </CardContent>
-                    </Card>
+                            <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                                {tickets.filter(t => t.status === 'Chờ thanh toán').length}
+                            </Typography>
+                        </Box>
+                        <Avatar
+                            sx={{
+                                bgcolor: alpha("#fff", 0.2),
+                                width: 56,
+                                height: 56,
+                                boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+                            }}
+                        >
+                            <TimeIcon fontSize="large" />
+                        </Avatar>
+                    </StatsCard>
                 </Grid>
             </Grid>
 
             {/* Tickets Table */}
-            <Paper elevation={2}>
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
-                    <Typography variant="h6">Danh sách vé ({filteredTickets.length})</Typography>
-                </Box>
+            <StyledCard>
+                <CardHeader
+                    title={
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            Danh sách vé
+                        </Typography>
+                    }
+                    action={
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Button
+                                variant="outlined"
+                                startIcon={<FilterIcon />}
+                                onClick={() => setFilterOpen(true)}
+                                sx={{
+                                    borderRadius: 3,
+                                    px: 2,
+                                    borderWidth: 1.5,
+                                }}
+                            >
+                                Lọc
+                                {Object.values(filters).some(x => x !== '' && x !== null) && (
+                                    <Chip
+                                        size="small"
+                                        label={Object.values(filters).filter(x => x !== '' && x !== null).length}
+                                        color="primary"
+                                        sx={{ ml: 1 }}
+                                    />
+                                )}
+                            </Button>
+                        </Box>
+                    }
+                    sx={{ px: 3, py: 2.5 }}
+                />
                 <Divider />
-                <TableContainer>
-                    <Table>
-                        <TableHead sx={{ bgcolor: 'grey.100' }}>
-                            <TableRow>
-                                <TableCell>Mã đặt vé</TableCell>
-                                <TableCell>Khách hàng</TableCell>
-                                <TableCell>Chuyến xe</TableCell>
-                                <TableCell>Ngày khởi hành</TableCell>
-                                <TableCell>Ghế</TableCell>
-                                <TableCell>Tổng tiền</TableCell>
-                                <TableCell>Trạng thái</TableCell>
-                                <TableCell align="center">Thao tác</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {filteredTickets.length > 0 ? (
-                                filteredTickets.map(ticket => (
-                                    <TableRow key={ticket.id} hover>
-                                        <TableCell>{ticket.bookingCode}</TableCell>
-                                        <TableCell>
-                                            <Typography variant="body2"><strong>{ticket.customerName}</strong></Typography>
-                                            <Typography variant="caption" color="text.secondary">{ticket.phone}</Typography>
-                                        </TableCell>
-                                        <TableCell>{ticket.tripName}</TableCell>
-                                        <TableCell>
-                                            {formatDate(ticket.departureTime)}<br />
-                                            <Typography variant="caption">{formatTime(ticket.departureTime)}</Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                            {ticket.seats.map(seat => (
-                                                <Chip key={seat} label={seat} size="small" sx={{ m: 0.2 }} />
-                                            ))}
-                                        </TableCell>
-                                        <TableCell>{ticket.totalAmount.toLocaleString()} VNĐ</TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={ticket.status}
-                                                size="small"
-                                                color={getStatusProperties(ticket.status).color}
-                                                icon={getStatusProperties(ticket.status).icon}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Tooltip title="In vé">
-                                                <IconButton color="info" size="small" onClick={() => {
-                                                    setSelectedTicket(ticket);
-                                                    setPrintOpen(true);
-                                                }}>
-                                                    <PrintIcon />
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Tooltip title="Xuất hóa đơn">
-                                                <IconButton color="primary" size="small" onClick={() =>
-                                                    showSnackbar('Hóa đơn đã được xuất', 'success')
-                                                }>
-                                                    <ReceiptIcon />
-                                                </IconButton>
-                                            </Tooltip>
+                <CardContent sx={{ p: 3 }}>
+                    {/* Search Bar */}
+                    <Box sx={{ display: "flex", mb: 4 }}>
+                        <SearchField
+                            size="small"
+                            placeholder="Tìm kiếm theo mã vé, tên KH hoặc SĐT..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            InputProps={{
+                                startAdornment: (
+                                    <SearchIcon sx={{ color: "text.secondary", mr: 1 }} />
+                                ),
+                            }}
+                            fullWidth
+                            sx={{ mr: 2, maxWidth: 300 }}
+                        />
+                    </Box>
+
+                    {/* Tickets Table */}
+                    <TableContainer
+                        component={Paper}
+                        elevation={0}
+                        sx={{
+                            borderRadius: 2,
+                            border: "1px solid rgba(0,0,0,0.08)",
+                            mb: 2,
+                        }}
+                    >
+                        <Table size="medium">
+                            <TableHead>
+                                <TableRow sx={{ backgroundColor: "rgba(0,0,0,0.02)" }}>
+                                    <TableCell sx={{ fontWeight: 600 }}>Mã đặt vé</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Khách hàng</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Chuyến xe</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Ngày khởi hành</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Ghế</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Tổng tiền</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Trạng thái</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 600 }}>Thao tác</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {filteredTickets.length > 0 ? (
+                                    filteredTickets.map(ticket => (
+                                        <TableRow
+                                            key={ticket.id}
+                                            hover
+                                            sx={{
+                                                "&:hover": {
+                                                    backgroundColor: alpha("#3f51b5", 0.04),
+                                                },
+                                            }}
+                                        >
+                                            <TableCell>{ticket.bookingCode}</TableCell>
+                                            <TableCell>
+                                                <Box sx={{ display: "flex", alignItems: "center" }}>
+                                                    <Avatar
+                                                        sx={{
+                                                            mr: 2,
+                                                            bgcolor: alpha("#3f51b5", 0.1),
+                                                            color: "#3f51b5",
+                                                        }}
+                                                    >
+                                                        {ticket.customerName[0]}
+                                                    </Avatar>
+                                                    <Box>
+                                                        <Typography fontWeight={500}>
+                                                            {ticket.customerName}
+                                                        </Typography>
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            {ticket.phone}
+                                                        </Typography>
+                                                    </Box>
+                                                </Box>
+                                            </TableCell>
+                                            <TableCell>{ticket.tripName}</TableCell>
+                                            <TableCell>
+                                                {formatDate(ticket.departureTime)}<br />
+                                                <Typography variant="caption">{formatTime(ticket.departureTime)}</Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                {ticket.seats.map(seat => (
+                                                    <Chip
+                                                        key={seat}
+                                                        label={seat}
+                                                        size="small"
+                                                        sx={{
+                                                            m: 0.2,
+                                                            borderRadius: "12px",
+                                                            backgroundColor: alpha("#3f51b5", 0.1),
+                                                            color: "#3f51b5",
+                                                        }}
+                                                    />
+                                                ))}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography fontWeight={500}>
+                                                    {ticket.totalAmount.toLocaleString()} VNĐ
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip
+                                                    label={ticket.status}
+                                                    size="small"
+                                                    color={getStatusProperties(ticket.status).color}
+                                                    icon={getStatusProperties(ticket.status).icon}
+                                                    sx={{
+                                                        borderRadius: "12px",
+                                                        fontWeight: 500,
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell align="center">
+                                                <Tooltip title="In vé">
+                                                    <IconButton
+                                                        color="info"
+                                                        size="small"
+                                                        onClick={() => {
+                                                            setSelectedTicket(ticket);
+                                                            setPrintOpen(true);
+                                                        }}
+                                                        sx={{
+                                                            '&:hover': {
+                                                                backgroundColor: alpha("#2196f3", 0.1),
+                                                            },
+                                                        }}
+                                                    >
+                                                        <PrintIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Xuất hóa đơn">
+                                                    <IconButton
+                                                        color="primary"
+                                                        size="small"
+                                                        onClick={() => showSnackbar('Hóa đơn đã được xuất', 'success')}
+                                                        sx={{
+                                                            '&:hover': {
+                                                                backgroundColor: alpha("#3f51b5", 0.1),
+                                                            },
+                                                        }}
+                                                    >
+                                                        <ReceiptIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                                            <Typography variant="subtitle1">Không tìm thấy vé nào phù hợp</Typography>
+                                            <Button
+                                                variant="text"
+                                                startIcon={<ClearIcon />}
+                                                onClick={resetFilters}
+                                                sx={{ mt: 1 }}
+                                            >
+                                                Xóa bộ lọc
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
-                                        <Typography variant="subtitle1">Không tìm thấy vé nào phù hợp</Typography>
-                                        <Button variant="text" startIcon={<ClearIcon />} onClick={resetFilters} sx={{ mt: 1 }}>
-                                            Xóa bộ lọc
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Paper>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </CardContent>
+            </StyledCard>
 
             {/* Filter Dialog */}
             <Dialog open={filterOpen} onClose={() => setFilterOpen(false)} maxWidth="sm" fullWidth>
@@ -505,7 +686,7 @@ function TicketManagementDashboard() {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
-        </Box>
+        </Container>
     );
 }
 

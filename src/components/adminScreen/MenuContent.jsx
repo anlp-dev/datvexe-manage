@@ -19,6 +19,7 @@ import AirplaneTicketIcon from '@mui/icons-material/AirplaneTicket';
 import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
 import PaymentIcon from '@mui/icons-material/Payment';
 import FlagIcon from '@mui/icons-material/Flag';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import {useLocation} from "react-router-dom";
 
 const mainListItems = [
@@ -31,14 +32,10 @@ const mainListItems = [
     {text: 'Quản lý vé', icon: <AirplaneTicketIcon/>, path: "ticket"},
     {text: 'Quản lý xe', icon: <DepartureBoardIcon/>, path: "vehicle"},
     {text: 'Quản lý thanh toán', icon: <PaymentIcon/>, path: "payment"},
+    {text: 'Quản lý mã giảm giá', icon: <LocalOfferIcon/>, path: "discount"},
     {text: 'Báo cáo, thống kê', icon: <FlagIcon/>, path: "report"},
 ];
 
-const secondaryListItems = [
-    {text: 'Settings', icon: <SettingsRoundedIcon/>},
-    {text: 'About', icon: <InfoRoundedIcon/>},
-    {text: 'Feedback', icon: <HelpRoundedIcon/>},
-];
 
 const MenuContent = ({onMenuItemClick}) => {
     const location = useLocation();
@@ -58,16 +55,6 @@ const MenuContent = ({onMenuItemClick}) => {
                         </ListItem>
                     )
                 })}
-            </List>
-            <List dense>
-                {secondaryListItems.map((item, index) => (
-                    <ListItem key={index} disablePadding sx={{display: 'block'}}>
-                        <ListItemButton>
-                            <ListItemIcon>{item.icon}</ListItemIcon>
-                            <ListItemText primary={item.text}/>
-                        </ListItemButton>
-                    </ListItem>
-                ))}
             </List>
         </Stack>
     );

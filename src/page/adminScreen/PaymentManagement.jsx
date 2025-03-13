@@ -161,7 +161,6 @@ function PaymentManagementDashboard() {
         severity: 'success'
     });
 
-    // Stats calculations
     const totalRevenue = payments.reduce((sum, payment) =>
         payment.status === 'Thành công' ? sum + payment.amount : sum, 0);
     const pendingPayments = payments.filter(payment => payment.status === 'Chờ thanh toán').length;
