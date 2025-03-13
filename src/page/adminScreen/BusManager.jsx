@@ -553,7 +553,7 @@ function BusManagementDashboard() {
                       <Chip
                         label={bus.busOperator.types.name}
                         size="small"
-                        color="primary"
+                        color="warning"
                         sx={{ borderRadius: "12px" }}
                       />
                     </TableCell>

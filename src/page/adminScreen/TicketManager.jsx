@@ -6,7 +6,7 @@ import {
     FormControl, InputLabel, Select, MenuItem, IconButton,
     Chip, Snackbar, Alert, Tooltip, Divider, Card, CardContent,
     OutlinedInput, InputAdornment, Container, Avatar, alpha,
-    CardHeader
+    CardHeader, CircularProgress
 } from '@mui/material';
 import {
     FilterList as FilterIcon, Print as PrintIcon,
@@ -19,6 +19,7 @@ import {
     EventBusy as CancelledIcon
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
+import TicketService from '../../services/TicketService';
 
 // Enhanced styled components
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -160,8 +161,8 @@ const tripOptions = [
 ];
 
 function TicketManagementDashboard() {
-    const [tickets] = useState(initialTickets);
-    const [filteredTickets, setFilteredTickets] = useState(initialTickets);
+    const [tickets, setTickets] = useState([]);
+    const [filteredTickets, setFilteredTickets] = useState([]);
     const [printOpen, setPrintOpen] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -170,6 +171,56 @@ function TicketManagementDashboard() {
     const [filters, setFilters] = useState({
         startDate: null, endDate: null, status: '', trip: '', paymentMethod: ''
     });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchTickets();
+    }, []);
+
+    const fetchTickets = async () => {
+        try {
+            setLoading(true);
+            const response = await TicketService.getAdminTickets();
+            if(response.status === 200){
+              const data = response.data;
+              const formattedTickets = data.map(ticket => ({
+                  id: ticket._id,
+                  bookingCode: ticket.code,
+                  customerName: ticket.user.fullname,
+                  phone: ticket.user.phone,
+                  tripCode: ticket.busSchedule.tripCode,
+                  tripName: ticket.busSchedule.route,
+                  departureTime: ticket.departureTime,
+                  seats: ticket.seats,
+                  totalAmount: ticket.totalPrice,
+                  paymentMethod: ticket.paymentMethod,
+                  status: mapStatus(ticket.status),
+                  bookingDate: ticket.createdAt
+              }));
+              setTickets(formattedTickets);
+              setFilteredTickets(formattedTickets);
+            }
+        } catch (error) {
+            console.error('Error fetching tickets:', error);
+            setSnackbar({
+                open: true,
+                message: 'Có lỗi xảy ra khi tải dữ liệu',
+                severity: 'error'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const mapStatus = (status) => {
+        switch (status) {
+            case 'pending': return 'Chờ thanh toán';
+            case 'payed': return 'Đã thanh toán';
+            case 'completed': return 'Hoàn thành';
+            case 'cancelled': return 'Hủy';
+            default: return status;
+        }
+    };
 
     useEffect(() => {
         // Apply filters whenever search term or filters change
@@ -408,7 +459,16 @@ function TicketManagementDashboard() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {filteredTickets.length > 0 ? (
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                                            <CircularProgress size={24} />
+                                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                                Đang tải dữ liệu...
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : filteredTickets.length > 0 ? (
                                     filteredTickets.map(ticket => (
                                         <TableRow
                                             key={ticket.id}
