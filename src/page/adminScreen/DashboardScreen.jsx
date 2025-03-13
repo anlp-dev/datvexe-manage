@@ -14,6 +14,7 @@ import TicketManagementDashboard from "./TicketManager.jsx";
 import VehicleManagement from "./VehicleManagement.jsx";
 import PaymentManagementDashboard from "./PaymentManagement.jsx";
 import ReportDashboard from "./ReportDashboard.jsx";
+import DiscountManagement from "./DiscountManagement.jsx";
 
 
 export default function Dashboard() {
@@ -72,6 +73,11 @@ export default function Dashboard() {
                     <Route path="/report" element={
                         <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
                             <ReportDashboard/>
+                        </RoleBasedRoute>
+                    }/>
+                    <Route path="/discount" element={
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                            <DiscountManagement/>
                         </RoleBasedRoute>
                     }/>
                 </Routes>
