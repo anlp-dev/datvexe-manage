@@ -15,6 +15,20 @@ const BusScheduleService = {
       throw handleApiError(error);
     }
   },
+  async updateBusScheduleStatus(dataReq) {
+    try {
+      return await fetchWithAuth(`/manage/busSchedule/update`, "POST", dataReq);
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+  async cancelBusSchedule(id){
+    try {
+      return await fetchWithAuth(`/manage/busSchedule/${id}`, "DELETE");
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
   
   
 };

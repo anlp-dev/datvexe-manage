@@ -31,52 +31,52 @@ export default function Dashboard() {
                 <Routes>
                     <Route path="/homeAdmin" element={<HomeAdmin/>}/>
                     <Route path="/logRequest" element={
-                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_ADMIN_ONLY"]}>
                             <LogRequest/>
                         </RoleBasedRoute>
                     }/>
                     <Route path="/manageUser" element={
-                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_MANAGER"]}>
                             <ManageUser/>
                         </RoleBasedRoute>
                     }/>
                     <Route path="/role" element={
-                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_ADMIN_ONLY"]}>
                             <RoleScreen/>
                         </RoleBasedRoute>
                     }/>
                     <Route path="/system" element={
-                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_ADMIN_ONLY"]}>
                             <SystemConfig/>
                         </RoleBasedRoute>
                     }/>
                     <Route path="/busManager" element={
-                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_MANAGER"]}>
                             <BusManagementDashboard/>
                         </RoleBasedRoute>
                     }/>
                     <Route path="/ticket" element={
-                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_MANAGER"]}>
                             <TicketManagementDashboard/>
                         </RoleBasedRoute>
                     }/>
                     <Route path="/vehicle" element={
-                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_MANAGER"]}>
                             <VehicleManagement/>
                         </RoleBasedRoute>
                     }/>
                     <Route path="/payment" element={
-                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_MANAGER"]}>
                             <PaymentManagementDashboard/>
                         </RoleBasedRoute>
                     }/>
                     <Route path="/report" element={
-                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_MANAGER"]}>
                             <ReportDashboard/>
                         </RoleBasedRoute>
                     }/>
                     <Route path="/discount" element={
-                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_MANAGER"]}>
                             <DiscountManagement/>
                         </RoleBasedRoute>
                     }/>

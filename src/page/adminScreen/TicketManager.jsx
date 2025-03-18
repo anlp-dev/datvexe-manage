@@ -20,6 +20,8 @@ import {
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import TicketService from '../../services/TicketService';
+import { formatCurrency } from '../../utils/format';
+import Loading from "../../components/loading/Loading.jsx";
 
 // Enhanced styled components
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -298,6 +300,9 @@ function TicketManagementDashboard() {
 
     return (
         <Container maxWidth={false}>
+        {loading && (
+                <Loading fullScreen={true} />
+            )}
             <Box sx={{ mb: 5, display: "flex", alignItems: "center" }}>
                 <Typography
                     variant="h4"
@@ -459,16 +464,7 @@ function TicketManagementDashboard() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
-                                            <CircularProgress size={24} />
-                                            <Typography variant="body2" sx={{ mt: 1 }}>
-                                                Đang tải dữ liệu...
-                                            </Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                ) : filteredTickets.length > 0 ? (
+                                 {filteredTickets.length > 0 ? (
                                     filteredTickets.map(ticket => (
                                         <TableRow
                                             key={ticket.id}
@@ -523,7 +519,7 @@ function TicketManagementDashboard() {
                                             </TableCell>
                                             <TableCell>
                                                 <Typography fontWeight={500}>
-                                                    {ticket.totalAmount.toLocaleString()} VNĐ
+                                                    {formatCurrency(ticket.totalAmount)}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>

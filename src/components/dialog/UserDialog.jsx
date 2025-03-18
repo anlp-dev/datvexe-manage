@@ -13,6 +13,7 @@ import {
   MenuItem,
   Box,
   FormHelperText,
+  CircularProgress,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import AdminService from "../../services/AdminService";
@@ -205,7 +206,12 @@ const UserDialog = ({ open, onClose, onSave, user, loading, roleData }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Hủy</Button>
-          <LoadingButton type="submit" variant="contained" loading={loading}>
+          <LoadingButton 
+            type="submit" 
+            variant="contained" 
+            loading={loading}
+            loadingIndicator={<CircularProgress color="inherit" size={20} thickness={4} />}
+          >
             {user ? "Cập nhật" : "Thêm mới"}
           </LoadingButton>
         </DialogActions>

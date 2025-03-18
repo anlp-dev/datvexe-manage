@@ -384,7 +384,7 @@ const DiscountManagement = () => {
 
   return (
     <Container maxWidth={100}>
-      {isLoading ? <Loading /> : ""}
+      {isLoading ? <Loading fullScreen={true} /> : ""}
       <Box sx={{ mb: 5, display: "flex", alignItems: "center" }}>
         <Typography
           variant="h4"

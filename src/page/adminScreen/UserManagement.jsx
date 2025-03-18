@@ -158,7 +158,7 @@ const UserManagement = () => {
       if (response.status === 200) {
         setUsers(response.data);
         fetchRoles();
-        filterDataStatistics();
+        filterDataStatistics(users);
       }
     } catch (error) {
       notifyError(error.message);
@@ -167,10 +167,10 @@ const UserManagement = () => {
     }
   };
 
-  const filterDataStatistics = () => {
-    const totalUsers = users.length;
-    const activeUsers = users.filter((user) => user.status === "01").length;
-    const newUsersToday = users.filter((user) => moment(user.createdAt).isSame(moment(), "day")).length;
+  const filterDataStatistics = (dataUser) => {
+    const totalUsers = dataUser.length;
+    const activeUsers = dataUser.filter((user) => user.status === "01").length;
+    const newUsersToday = dataUser.filter((user) => moment(user.createdAt).isSame(moment(), "day")).length;
     setStatistics({ totalUsers, activeUsers, newUsersToday });
   }
 
@@ -197,7 +197,6 @@ const UserManagement = () => {
 
   const handleSaveUser = async (userData) => {
     try {
-      setIsLoading(true);
       console.log(userData)
       const response = selectedUser
         ? await UserService.updateUser(userData)
@@ -210,9 +209,7 @@ const UserManagement = () => {
       }
     } catch (error) {
       notifyError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    } 
   };
 
   const handleDeleteClick = (user) => {
@@ -306,7 +303,7 @@ const UserManagement = () => {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return <Loading fullScreen={true} />;
   }
 
   return (

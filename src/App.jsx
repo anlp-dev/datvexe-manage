@@ -19,7 +19,7 @@ function App() {
                     <Route path="/403" element={<AccessDeniedPage/>}/>
                     <Route element={<PrivateRoute />}>
                         <Route path="/admin/*" element={
-                            <RoleBasedRoute allowedRoles={["SUPER_ADMIN"]}>
+                            <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_MANAGER"]}>
                                 <Dashboard />
                             </RoleBasedRoute>
                         }/>
