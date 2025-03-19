@@ -263,13 +263,31 @@ function BusManagementDashboard() {
 
   const handleStatusChange = async (bus, forceStatus = null) => {
     try {
+      console.log(bus, "bus");
       const nextStatus = forceStatus || STATUS_OPTIONS[bus.status]?.next;
       if (!nextStatus) return;
-
-      const response = await BusScheduleService.updateBusScheduleStatus(bus._id, { status: nextStatus });
+      const dataReq = {
+        id: bus._id,
+        status: nextStatus,
+      };
+      const response = await BusScheduleService.updateBusScheduleStatus(dataReq);
       if (response.status === 200) {
         await fetchBuses(); // Refresh data
         notifySuccess('Cập nhật trạng thái thành công!');
+      }
+    } catch (error) {
+      notifyError(error.message);
+    }
+  };
+
+
+  const handleCancelBusSchedule = async (bus) => {
+    try {
+      console.log(bus, "bus");
+      const response = await BusScheduleService.cancelBusSchedule(bus._id);
+      if (response.status === 200) {
+        await fetchBuses(); // Refresh data
+        notifySuccess('Đã hủy thành công lịch trình!');
       }
     } catch (error) {
       notifyError(error.message);
@@ -299,7 +317,7 @@ function BusManagementDashboard() {
 
   return (
     <Container maxWidth={false}>
-      {isLoading ? (<Loading/>) : ""}
+      {isLoading ? (<Loading fullScreen={true} />) : ""}
       <Box sx={{ mb: 5, display: "flex", alignItems: "center" }}>
         <Typography
           variant="h4"
@@ -612,7 +630,7 @@ function BusManagementDashboard() {
                           <Tooltip title="Hủy chuyến">
                             <IconButton
                               size="small"
-                              onClick={() => handleStatusChange(bus, 'cancelled')}
+                              onClick={() => handleCancelBusSchedule(bus)}
                               sx={{
                                 color: "error.main",
                                 bgcolor: alpha("#f44336", 0.1),

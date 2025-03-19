@@ -1,73 +1,123 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box, Container, Typography, Grid, Card, CardContent, CardHeader,
     Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, Paper, FormControl, InputLabel, Select, MenuItem,
-    Button, Divider, Avatar, IconButton, Tooltip
+    Button, Divider, Avatar, IconButton, Tooltip, useTheme, alpha
 } from '@mui/material';
 import {
-    TrendingUp, People, Speed, Cancel, CalendarMonth,
-    FileDownload, Refresh,
-    Person, DirectionsBus
+    TrendingUp, People, Cancel, CalendarMonth,
+    FileDownload, Refresh, ArrowUpward, ArrowDownward,
+    Person, DirectionsBus, AttachMoney, EventAvailable, Star
 } from '@mui/icons-material';
+import { styled } from '@mui/material/styles';
+import ReportService from '../../services/ReportService';
+import ExportService from '../../services/ExportService';
+import Loading from '../../components/loading/Loading';
+import { formatCurrency } from '../../utils/format';
 
-// Sample data
-const revenueData = {
-    daily: [
-        { date: '25/02/2025', amount: 7560000, bookings: 32 },
-        { date: '26/02/2025', amount: 8210000, bookings: 35 },
-        { date: '27/02/2025', amount: 6890000, bookings: 29 },
-        { date: '28/02/2025', amount: 9450000, bookings: 40 },
-    ],
-    monthly: [
-        { month: '11/2024', amount: 178500000, bookings: 750 },
-        { month: '12/2024', amount: 201300000, bookings: 845 },
-        { month: '01/2025', amount: 195600000, bookings: 820 },
-        { month: '02/2025', amount: 189700000, bookings: 795 },
-    ],
-    yearly: [
-        { year: '2022', amount: 1875000000, bookings: 7850 },
-        { year: '2023', amount: 2156000000, bookings: 9020 },
-        { year: '2024', amount: 2350000000, bookings: 9845 },
-    ]
-};
+// Styled Components
+const StyledCard = styled(Card)(({ theme }) => ({
+    height: '100%',
+    borderRadius: theme.spacing(2),
+    transition: 'transform 0.3s, box-shadow 0.3s',
+    '&:hover': {
+        transform: 'translateY(-4px)',
+        boxShadow: theme.shadows[8],
+    },
+    backgroundColor: theme.palette.background.paper,
+}));
 
-const driverPerformanceData = [
-    { id: 'TX001', name: 'Nguyễn Văn An', trips: 42, rating: 4.8, onTimeRate: 96, satisfaction: 92 },
-    { id: 'TX012', name: 'Trần Minh Bảo', trips: 38, rating: 4.9, onTimeRate: 98, satisfaction: 95 },
-    { id: 'TX008', name: 'Lê Thanh Cường', trips: 45, rating: 4.6, onTimeRate: 92, satisfaction: 89 },
-    { id: 'TX015', name: 'Phạm Quốc Dũng', trips: 40, rating: 4.7, onTimeRate: 94, satisfaction: 91 },
-    { id: 'TX003', name: 'Hoàng Minh Đức', trips: 36, rating: 4.5, onTimeRate: 91, satisfaction: 87 },
-];
+const StyledTab = styled(Tab)(({ theme }) => ({
+    minHeight: 60,
+    textTransform: 'none',
+    fontSize: '1rem',
+    fontWeight: 600,
+    transition: 'all 0.2s',
+    '&:hover': {
+        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+    },
+    '&.Mui-selected': {
+        color: theme.palette.primary.main,
+    },
+}));
 
-const highCancellationRoutesData = [
-    { route: 'Hà Nội ↔ Lào Cai', trips: 120, cancellations: 12, rate: 10.0, primaryReason: 'Thời tiết xấu' },
-    { route: 'TP HCM ↔ Đà Lạt', trips: 95, cancellations: 8, rate: 8.4, primaryReason: 'Kẹt xe' },
-    { route: 'Hà Nội ↔ Hải Phòng', trips: 150, cancellations: 9, rate: 6.0, primaryReason: 'Sự cố kỹ thuật' },
-    { route: 'TP HCM ↔ Vũng Tàu', trips: 200, cancellations: 10, rate: 5.0, primaryReason: 'Thiếu hành khách' },
-    { route: 'Đà Nẵng ↔ Huế', trips: 80, cancellations: 4, rate: 5.0, primaryReason: 'Sự cố kỹ thuật' },
-];
+const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
+    borderRadius: theme.spacing(2),
+    '& .MuiTable-root': {
+        '& .MuiTableCell-head': {
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+            backgroundColor: theme.palette.primary.main,
+            color: theme.palette.common.white,
+            '&:first-of-type': {
+                borderTopLeftRadius: theme.spacing(2),
+            },
+            '&:last-child': {
+                borderTopRightRadius: theme.spacing(2),
+            },
+        },
+    },
+}));
 
-const bookingData = {
-    byRoute: [
-        { route: 'Hà Nội ↔ Lào Cai', count: 520, percent: 28 },
-        { route: 'TP HCM ↔ Đà Lạt', count: 420, percent: 23 },
-        { route: 'Đà Nẵng ↔ Huế', count: 320, percent: 17 },
-        { route: 'Hà Nội ↔ Hải Phòng', count: 280, percent: 15 },
-        { route: 'TP HCM ↔ Vũng Tàu', count: 320, percent: 17 },
-    ],
-    byTime: [
-        { time: 'Sáng (6h-12h)', count: 680, percent: 37 },
-        { time: 'Chiều (12h-18h)', count: 560, percent: 30 },
-        { time: 'Tối (18h-24h)', count: 450, percent: 24 },
-        { time: 'Đêm (0h-6h)', count: 170, percent: 9 },
-    ]
-};
+const StatCard = styled(Card)(({ theme }) => ({
+    height: '100%',
+    borderRadius: theme.spacing(2),
+    background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
+    color: theme.palette.common.white,
+    transition: 'transform 0.3s',
+    '&:hover': {
+        transform: 'translateY(-4px)',
+    },
+}));
+
+const GradientButton = styled(Button)(({ theme }) => ({
+    background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.primary.light} 90%)`,
+    borderRadius: theme.spacing(5),
+    transition: 'all 0.3s',
+    color: theme.palette.common.white,
+    textTransform: 'none',
+    fontWeight: 600,
+    '&:hover': {
+        background: `linear-gradient(45deg, ${theme.palette.primary.dark} 30%, ${theme.palette.primary.main} 90%)`,
+    },
+}));
+
 
 function ReportsDashboard() {
+    const theme = useTheme();
     const [tabValue, setTabValue] = useState(0);
     const [timeFilter, setTimeFilter] = useState('month');
     const [routeFilter, setRouteFilter] = useState('all');
+    const [loading, setLoading] = useState(false);
+    const [reportData, setReportData] = useState({
+        revenueReport: {
+            totalRevenue: 0,
+            totalTicket: 0,
+            detail: []
+        },
+        percentCancelReport: []
+    });
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const response = await ReportService.getReport();
+            if (response.status === 200) {
+                setReportData(response.data);
+            } else {
+                throw new Error(response.message);
+            }
+        } catch (e) {
+            throw new Error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -82,27 +132,29 @@ function ReportsDashboard() {
     };
 
     const exportReport = () => {
-        alert('Đã xuất báo cáo thành công!');
-    };
-
-    const getRevenueData = () => {
-        switch(timeFilter) {
-            case 'day': return revenueData.daily;
-            case 'month': return revenueData.monthly;
-            case 'year': return revenueData.yearly;
-            default: return revenueData.monthly;
+        try {
+            ExportService.exportToExcel(reportData);
+        } catch (error) {
+            console.error('Lỗi khi xuất báo cáo:', error);
+            // Thêm thông báo lỗi nếu bạn có component thông báo
         }
     };
 
     const renderRevenueReport = () => {
-        const data = getRevenueData();
-        const timeLabel = timeFilter === 'day' ? 'Ngày' :
-            timeFilter === 'month' ? 'Tháng' : 'Năm';
+        const { revenueReport } = reportData;
+        const prevPeriodChange = 0; // You might want to calculate this based on your needs
 
         return (
             <Grid container spacing={3}>
                 <Grid item xs={12}>
-                    <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Box sx={{ 
+                        mb: 4,
+                        display: 'flex',
+                        gap: 2,
+                        flexWrap: 'wrap',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
                         <FormControl size="small" sx={{ minWidth: 200 }}>
                             <InputLabel>Thời gian</InputLabel>
                             <Select
@@ -116,242 +168,118 @@ function ReportsDashboard() {
                             </Select>
                         </FormControl>
 
-                        <Button
-                            variant="outlined"
-                            startIcon={<Refresh />}
-                            onClick={() => setTimeFilter('month')}
-                        >
-                            Làm mới
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <GradientButton
+                                startIcon={<Refresh />}
+                                onClick={fetchData}
+                            >
+                                Làm mới
+                            </GradientButton>
 
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<FileDownload />}
-                            onClick={exportReport}
-                        >
-                            Xuất báo cáo
-                        </Button>
+                            <GradientButton
+                                startIcon={<FileDownload />}
+                                onClick={exportReport}
+                                sx={{ 
+                                    background: `linear-gradient(45deg, ${theme.palette.success.main} 30%, ${theme.palette.success.light} 90%)`
+                                }}
+                            >
+                                Xuất báo cáo
+                            </GradientButton>
+                        </Box>
                     </Box>
                 </Grid>
 
-                <Grid item xs={12} md={8}>
-                    <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>{timeLabel}</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>Số lượng đặt vé</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>Doanh thu</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {data.map((row, index) => (
-                                    <TableRow key={index} hover>
-                                        <TableCell>
-                                            {timeFilter === 'day' ? row.date :
-                                                timeFilter === 'month' ? row.month : row.year}
-                                        </TableCell>
-                                        <TableCell align="right">{row.bookings.toLocaleString()}</TableCell>
-                                        <TableCell align="right">{row.amount.toLocaleString()} đ</TableCell>
-                                    </TableRow>
-                                ))}
-                                <TableRow sx={{ bgcolor: 'rgba(25, 118, 210, 0.08)' }}>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>Tổng</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                                        {data.reduce((sum, item) => sum + item.bookings, 0).toLocaleString()}
-                                    </TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                                        {data.reduce((sum, item) => sum + item.amount, 0).toLocaleString()} đ
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                    <Card sx={{ height: '100%', boxShadow: 3, borderRadius: 2 }}>
-                        <CardHeader
-                            title="Tổng quan doanh thu"
-                            avatar={<Avatar sx={{ bgcolor: 'primary.main' }}><TrendingUp /></Avatar>}
-                        />
+                <Grid item xs={12} md={6} lg={3}>
+                    <StatCard>
                         <CardContent>
-                            <Box sx={{ mb: 3 }}>
-                                <Typography variant="subtitle2" color="text.secondary">Tổng doanh thu</Typography>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                                    {data.reduce((sum, item) => sum + item.amount, 0).toLocaleString()} đ
-                                </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', mr: 2 }}>
+                                    <AttachMoney />
+                                </Avatar>
+                                <Typography variant="h6">Tổng doanh thu</Typography>
                             </Box>
-
-                            <Box sx={{ mb: 3 }}>
-                                <Typography variant="subtitle2" color="text.secondary">Tổng số lượng đặt vé</Typography>
-                                <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                                    {data.reduce((sum, item) => sum + item.bookings, 0).toLocaleString()}
-                                </Typography>
-                            </Box>
-
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary">Doanh thu trung bình mỗi {timeFilter === 'day' ? 'ngày' : timeFilter === 'month' ? 'tháng' : 'năm'}</Typography>
-                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                    {Math.round(data.reduce((sum, item) => sum + item.amount, 0) / data.length).toLocaleString()} đ
+                            <Typography variant="h4" sx={{ mb: 1, fontWeight: 'bold' }}>
+                                {formatCurrency(revenueReport.totalRevenue)}
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                {prevPeriodChange >= 0 ? <ArrowUpward color="inherit" /> : <ArrowDownward color="inherit" />}
+                                <Typography variant="body2" sx={{ ml: 1 }}>
+                                    {Math.abs(prevPeriodChange)}% so với kỳ trước
                                 </Typography>
                             </Box>
                         </CardContent>
-                    </Card>
+                    </StatCard>
                 </Grid>
-            </Grid>
-        );
-    };
 
-    const renderBookingReport = () => {
-        return (
-            <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                    <Card sx={{ height: '100%', boxShadow: 3, borderRadius: 2 }}>
-                        <CardHeader
-                            title="Số lượng đặt vé theo tuyến"
-                            avatar={<Avatar sx={{ bgcolor: '#ff9800' }}><DirectionsBus /></Avatar>}
-                        />
+                <Grid item xs={12} md={6} lg={3}>
+                    <StatCard sx={{ 
+                        background: `linear-gradient(135deg, ${theme.palette.secondary.light} 0%, ${theme.palette.secondary.main} 100%)`
+                    }}>
                         <CardContent>
-                            <TableContainer>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell sx={{ fontWeight: 'bold', bgcolor: '#ff9800', color: 'white' }}>Tuyến đường</TableCell>
-                                            <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: '#ff9800', color: 'white' }}>Số lượng</TableCell>
-                                            <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: '#ff9800', color: 'white' }}>Tỷ lệ</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {bookingData.byRoute.map((row, index) => (
-                                            <TableRow key={index} hover>
-                                                <TableCell>{row.route}</TableCell>
-                                                <TableCell align="right">{row.count.toLocaleString()}</TableCell>
-                                                <TableCell align="right">{row.percent}%</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', mr: 2 }}>
+                                    <EventAvailable />
+                                </Avatar>
+                                <Typography variant="h6">Tổng đặt vé</Typography>
+                            </Box>
+                            <Typography variant="h4" sx={{ mb: 1, fontWeight: 'bold' }}>
+                                {revenueReport.totalTicket.toLocaleString()}
+                            </Typography>
+                            <Typography variant="body2">
+                                Trung bình {Math.round(revenueReport.totalTicket / revenueReport.detail.length || 1)} vé/tháng
+                            </Typography>
                         </CardContent>
-                    </Card>
+                    </StatCard>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
-                    <Card sx={{ height: '100%', boxShadow: 3, borderRadius: 2 }}>
-                        <CardHeader
-                            title="Số lượng đặt vé theo khung giờ"
-                            avatar={<Avatar sx={{ bgcolor: '#ff9800' }}><CalendarMonth /></Avatar>}
-                        />
-                        <CardContent>
-                            <TableContainer>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell sx={{ fontWeight: 'bold', bgcolor: '#ff9800', color: 'white' }}>Khung giờ</TableCell>
-                                            <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: '#ff9800', color: 'white' }}>Số lượng</TableCell>
-                                            <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: '#ff9800', color: 'white' }}>Tỷ lệ</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {bookingData.byTime.map((row, index) => (
-                                            <TableRow key={index} hover>
-                                                <TableCell>{row.time}</TableCell>
-                                                <TableCell align="right">{row.count.toLocaleString()}</TableCell>
-                                                <TableCell align="right">{row.percent}%</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </CardContent>
-                    </Card>
-                </Grid>
-            </Grid>
-        );
-    };
-
-    const renderDriverPerformance = () => {
-        return (
-            <Grid container spacing={3}>
                 <Grid item xs={12}>
-                    <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell sx={{ fontWeight: 'bold', bgcolor: '#4caf50', color: 'white' }}>Mã tài xế</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', bgcolor: '#4caf50', color: 'white' }}>Tên tài xế</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#4caf50', color: 'white' }}>Số chuyến</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#4caf50', color: 'white' }}>Xếp hạng</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#4caf50', color: 'white' }}>Tỷ lệ đúng giờ</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#4caf50', color: 'white' }}>Độ hài lòng</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {driverPerformanceData.map((driver) => (
-                                    <TableRow key={driver.id} hover>
-                                        <TableCell>{driver.id}</TableCell>
-                                        <TableCell>
-                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                <Avatar sx={{ mr: 1, bgcolor: '#4caf50', width: 32, height: 32 }}>
-                                                    <Person fontSize="small" />
-                                                </Avatar>
-                                                {driver.name}
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell align="center">{driver.trips}</TableCell>
-                                        <TableCell align="center">
-                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{driver.rating}</Typography>
-                                                <Typography variant="body2" color="text.secondary">/5</Typography>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Box sx={{
-                                                bgcolor: driver.onTimeRate >= 95 ? '#e8f5e9' :
-                                                    driver.onTimeRate >= 90 ? '#fff8e1' : '#ffebee',
-                                                px: 1,
-                                                py: 0.5,
-                                                borderRadius: 1,
-                                                display: 'inline-block',
-                                                fontWeight: 'bold',
-                                                color: driver.onTimeRate >= 95 ? '#2e7d32' :
-                                                    driver.onTimeRate >= 90 ? '#f57c00' : '#c62828'
-                                            }}>
-                                                {driver.onTimeRate}%
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Box sx={{
-                                                bgcolor: driver.satisfaction >= 90 ? '#e8f5e9' :
-                                                    driver.satisfaction >= 85 ? '#fff8e1' : '#ffebee',
-                                                px: 1,
-                                                py: 0.5,
-                                                borderRadius: 1,
-                                                display: 'inline-block',
-                                                fontWeight: 'bold',
-                                                color: driver.satisfaction >= 90 ? '#2e7d32' :
-                                                    driver.satisfaction >= 85 ? '#f57c00' : '#c62828'
-                                            }}>
-                                                {driver.satisfaction}%
-                                            </Box>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                    <StyledCard>
+                        <CardContent>
+                            <Typography variant="h6" sx={{ mb: 3, fontWeight: 'bold' }}>
+                                Chi tiết doanh thu theo tháng
+                            </Typography>
+                            <StyledTableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Tháng</TableCell>
+                                            <TableCell align="right">Số lượng đặt vé</TableCell>
+                                            <TableCell align="right">Doanh thu</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {revenueReport.detail.map((row, index) => (
+                                            <TableRow key={index} hover>
+                                                <TableCell>Tháng {row.month}</TableCell>
+                                                <TableCell align="right">{row.totalTicket.toLocaleString()}</TableCell>
+                                                <TableCell align="right">{formatCurrency(row.totalRevenue)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                        <TableRow sx={{ 
+                                            bgcolor: alpha(theme.palette.primary.main, 0.08),
+                                            '& td': { fontWeight: 'bold' }
+                                        }}>
+                                            <TableCell>Tổng</TableCell>
+                                            <TableCell align="right">{revenueReport.totalTicket.toLocaleString()}</TableCell>
+                                            <TableCell align="right">{formatCurrency(revenueReport.totalRevenue)}</TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                            </StyledTableContainer>
+                        </CardContent>
+                    </StyledCard>
                 </Grid>
             </Grid>
         );
     };
 
     const renderCancellationReport = () => {
+        const { percentCancelReport } = reportData;
+
         return (
             <Grid container spacing={3}>
                 <Grid item xs={12}>
-                    <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Box sx={{ mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                         <FormControl size="small" sx={{ minWidth: 200 }}>
                             <InputLabel>Tuyến đường</InputLabel>
                             <Select
@@ -360,7 +288,7 @@ function ReportsDashboard() {
                                 onChange={handleRouteFilterChange}
                             >
                                 <MenuItem value="all">Tất cả</MenuItem>
-                                {highCancellationRoutesData.map((route, index) => (
+                                {percentCancelReport.map((route, index) => (
                                     <MenuItem key={index} value={route.route}>{route.route}</MenuItem>
                                 ))}
                             </Select>
@@ -369,84 +297,145 @@ function ReportsDashboard() {
                 </Grid>
 
                 <Grid item xs={12}>
-                    <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f44336', color: 'white' }}>Tuyến đường</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#f44336', color: 'white' }}>Tổng chuyến</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#f44336', color: 'white' }}>Số lần hủy</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#f44336', color: 'white' }}>Tỷ lệ hủy</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f44336', color: 'white' }}>Lý do chính</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {highCancellationRoutesData
-                                    .filter(route => routeFilter === 'all' || route.route === routeFilter)
-                                    .map((route, index) => (
-                                        <TableRow key={index} hover>
-                                            <TableCell>{route.route}</TableCell>
-                                            <TableCell align="center">{route.trips}</TableCell>
-                                            <TableCell align="center">{route.cancellations}</TableCell>
-                                            <TableCell align="center">
-                                                <Box sx={{
-                                                    bgcolor: route.rate <= 5 ? '#e8f5e9' :
-                                                        route.rate <= 8 ? '#fff8e1' : '#ffebee',
-                                                    px: 1,
-                                                    py: 0.5,
-                                                    borderRadius: 1,
-                                                    display: 'inline-block',
-                                                    fontWeight: 'bold',
-                                                    color: route.rate <= 5 ? '#2e7d32' :
-                                                        route.rate <= 8 ? '#f57c00' : '#c62828'
-                                                }}>
-                                                    {route.rate.toFixed(1)}%
-                                                </Box>
-                                            </TableCell>
-                                            <TableCell>{route.primaryReason}</TableCell>
+                    <StyledCard>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                                <Avatar sx={{ bgcolor: theme.palette.error.main }}>
+                                    <Cancel />
+                                </Avatar>
+                                <Typography variant="h6">Chi tiết hủy chuyến</Typography>
+                            </Box>
+                            <StyledTableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Tuyến đường</TableCell>
+                                            <TableCell align="center">Tổng chuyến</TableCell>
+                                            <TableCell align="center">Số lần hủy</TableCell>
+                                            <TableCell align="center">Tỷ lệ hủy</TableCell>
+                                            <TableCell align="right">Doanh thu mất</TableCell>
+                                            <TableCell>Lý do hủy</TableCell>
                                         </TableRow>
-                                    ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                    </TableHead>
+                                    <TableBody>
+                                        {percentCancelReport
+                                            .filter(route => routeFilter === 'all' || route.route === routeFilter)
+                                            .map((route, index) => (
+                                                <TableRow key={index} hover>
+                                                    <TableCell>{route.route}</TableCell>
+                                                    <TableCell align="center">{route.tongChuyen}</TableCell>
+                                                    <TableCell align="center">{route.huyChuyen}</TableCell>
+                                                    <TableCell align="center">
+                                                        <Box sx={{
+                                                            display: 'inline-block',
+                                                            px: 1.5,
+                                                            py: 0.5,
+                                                            borderRadius: 1,
+                                                            bgcolor: parseFloat(route.tiLeHuy) <= 30 ? alpha(theme.palette.success.main, 0.1) :
+                                                                parseFloat(route.tiLeHuy) <= 60 ? alpha(theme.palette.warning.main, 0.1) :
+                                                                alpha(theme.palette.error.main, 0.1),
+                                                            color: parseFloat(route.tiLeHuy) <= 30 ? theme.palette.success.dark :
+                                                                parseFloat(route.tiLeHuy) <= 60 ? theme.palette.warning.dark :
+                                                                theme.palette.error.dark,
+                                                            fontWeight: 'bold'
+                                                        }}>
+                                                            {route.tiLeHuy}%
+                                                        </Box>
+                                                    </TableCell>
+                                                    <TableCell align="right" sx={{ color: theme.palette.error.main }}>
+                                                        {route.doanhThuMat.toLocaleString()}đ
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                            {route.lyDoHuy.map((reason, idx) => (
+                                                                <Box key={idx} sx={{ 
+                                                                    display: 'flex', 
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'space-between',
+                                                                    gap: 2,
+                                                                    '&:not(:last-child)': {
+                                                                        borderBottom: '1px dashed',
+                                                                        borderColor: 'divider',
+                                                                        pb: 0.5
+                                                                    }
+                                                                }}>
+                                                                    <Typography variant="body2">
+                                                                        {reason}
+                                                                    </Typography>
+                                                                </Box>
+                                                            ))}
+                                                        </Box>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                    </TableBody>
+                                </Table>
+                            </StyledTableContainer>
+                        </CardContent>
+                    </StyledCard>
                 </Grid>
             </Grid>
         );
     };
 
     return (
-        <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
-            <Box sx={{ mb: 4 }}>
-                <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                    Báo cáo & Thống kê
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    Xem và phân tích dữ liệu kinh doanh để đưa ra quyết định hiệu quả
-                </Typography>
-            </Box>
-
-            <Paper sx={{ mb: 4, borderRadius: 2 }}>
-                <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    variant="scrollable"
-                    scrollButtons="auto"
-                    sx={{ borderBottom: 1, borderColor: 'divider' }}
-                >
-                    <Tab icon={<TrendingUp />} label="Doanh thu" id="tab-0" />
-                    <Tab icon={<People />} label="Đặt vé" id="tab-1" />
-                    <Tab icon={<Speed />} label="Hiệu suất tài xế" id="tab-2" />
-                    <Tab icon={<Cancel />} label="Tỷ lệ hủy cao" id="tab-3" />
-                </Tabs>
-
-                <Box sx={{ p: 3 }}>
-                    {tabValue === 0 && renderRevenueReport()}
-                    {tabValue === 1 && renderBookingReport()}
-                    {tabValue === 2 && renderDriverPerformance()}
-                    {tabValue === 3 && renderCancellationReport()}
+        <Box sx={{
+            minHeight: '100vh',
+            backgroundColor: theme.palette.background.default,
+            pt: 4,
+            pb: 8
+        }}>
+                    {loading ? <Loading fullScreen={true}/> : ""}
+            <Container maxWidth={false}>
+                <Box sx={{ mb: 4 }}>
+                    <Typography variant="h4" sx={{
+                        fontWeight: 700,
+                        mb: 1,
+                        color: theme.palette.primary.main
+                    }}>
+                        Báo cáo & Thống kê
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                        Xem và phân tích dữ liệu kinh doanh để đưa ra quyết định hiệu quả
+                    </Typography>
                 </Box>
-            </Paper>
-        </Container>
+
+                <StyledCard sx={{ mb: 4 }}>
+                    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                        <Tabs
+                            value={tabValue}
+                            onChange={handleTabChange}
+                            variant="scrollable"
+                            scrollButtons="auto"
+                            sx={{
+                                '& .MuiTabs-indicator': {
+                                    height: 3,
+                                    borderRadius: '3px 3px 0 0',
+                                }
+                            }}
+                        >
+                            <StyledTab
+                                icon={<TrendingUp />}
+                                label="Doanh thu"
+                                id="tab-0"
+                                iconPosition="start"
+                            />
+                            <StyledTab
+                                icon={<Cancel />}
+                                label="Tỷ lệ hủy cao"
+                                id="tab-1"
+                                iconPosition="start"
+                            />
+                        </Tabs>
+                    </Box>
+
+                    <Box sx={{ p: 3 }}>
+                        {tabValue === 0 && renderRevenueReport()}
+                        {tabValue === 1 && renderCancellationReport()}
+                    </Box>
+                </StyledCard>
+            </Container>
+        </Box>
     );
 }
 

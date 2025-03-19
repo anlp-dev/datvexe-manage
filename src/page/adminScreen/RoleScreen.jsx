@@ -27,6 +27,7 @@ const RolePermissionManagement = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [openDialogRole, setOpenDialogRole] = useState(false);
     const [openDialogPermission, setOpenDialogPermission] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -34,7 +35,7 @@ const RolePermissionManagement = () => {
 
     const fetchData = async () => {
         try {
-            setIsLoading(true);
+            setLoading(true);
             const [roles, permissions, rolePermissions] = await Promise.all([
                 AdminService.getRole(),
                 AdminService.getPermission(),
@@ -50,7 +51,7 @@ const RolePermissionManagement = () => {
         } catch (e) {
             notifyError(e.message);
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     }
 
@@ -165,10 +166,9 @@ const RolePermissionManagement = () => {
 
     return (
         <Box sx={{flexGrow: 1, minHeight: '100vh', p: {xs: 1, md: 3}}}>
-            {isLoading &&
-                <>
-                    <Loading/>
-                </>}
+            {loading && (
+                <Loading fullScreen={true} />
+            )}
             <Box sx={{mb: 5, display: 'flex', alignItems: 'center'}}>
                 <Typography
                     variant="h4"
@@ -231,13 +231,7 @@ const RolePermissionManagement = () => {
                                                 onClick={() => handleOpenDialogRole(role)}
                                             >
                                                 <EditIcon fontSize="small"/>
-                                            </IconButton>
-                                            <IconButton
-                                                size="small"
-                                                sx={{color: 'error.main'}}
-                                            >
-                                                <DeleteIcon fontSize="small"/>
-                                            </IconButton>
+                                            </IconButton> 
                                         </Box>
                                     }
                                     sx={{

@@ -1,3 +1,4 @@
+import { jwtDecode } from "jwt-decode";
 import apiConfig from "../configs/apiConfig.jsx";
 
 const authService = {
@@ -24,6 +25,18 @@ const authService = {
         }catch (e) {
             throw new Error(e.message);
         }
+    },
+    async getUserInfo(id){
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${apiConfig.baseUrl}/auth/profile/${id}`, {
+            method: "GET",
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+        const data = await res.json();
+        if(!res.ok){
+            throw new Error("Error fetch data.")
+        }
+        return data;
     }
 }
 

@@ -104,11 +104,12 @@ const RequestLogsInterface = () => {
     const [dataChart, setDataChart] = useState([]);
     const [dataTable, setDataTable] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchData = async() => {
             try{
-                setIsLoading(true)
+                setLoading(true)
                 const resData = await SystemService.getLogRequest();
                 if(resData.status === 200){
                     formatData(resData.data);
@@ -116,7 +117,7 @@ const RequestLogsInterface = () => {
             }catch (e) {
                 notifyError(e.message);
             }finally {
-                setIsLoading(false);
+                setLoading(false);
             }
         }
         fetchData()
@@ -210,10 +211,9 @@ const RequestLogsInterface = () => {
 
     return (
         <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
-            {isLoading &&
-                <>
-                    <Loading/>
-                </>}
+            {loading && (
+                <Loading fullScreen={true} />
+            )}
             <Box sx={{ mb: 5, display: 'flex', alignItems: 'center' }}>
                 <Typography
                     variant="h4"

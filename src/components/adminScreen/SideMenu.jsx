@@ -8,6 +8,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import MenuContent from './MenuContent.jsx';
 import OptionsMenu from './OptionsMenu';
+import { jwtDecode } from 'jwt-decode';
+import authService from '../../services/AuthService.jsx';
 
 const drawerWidth = 240;
 
@@ -23,6 +25,8 @@ const Drawer = styled(MuiDrawer)({
 });
 
 export default function SideMenu({onMenuItemClick}) {
+    const name = localStorage.getItem("name")
+
     return (
         <Drawer
             variant="permanent"
@@ -56,16 +60,13 @@ export default function SideMenu({onMenuItemClick}) {
             >
                 <Avatar
                     sizes="small"
-                    alt="Riley Carter"
-                    src="/static/images/avatar/7.jpg"
+                    alt="hihi"
+                    src="https://th.bing.com/th/id/OIP.btgP01toqugcXjPwAF-k2AHaHa?w=216&h=217&c=7&r=0&o=5&pid=1.7"
                     sx={{ width: 36, height: 36 }}
-                />
+                />  
                 <Box sx={{ mr: 'auto' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: '16px' }}>
-                        Admin
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        admin@email.com
+                    <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: '16px', fontWeight: 'bold' }}>
+                       {name}
                     </Typography>
                 </Box>
                 <OptionsMenu />

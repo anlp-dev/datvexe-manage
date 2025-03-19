@@ -231,8 +231,12 @@ const Login = () => {
             if (resData.status === 200) {
                 const decode = jwtDecode(resData.data);
                 localStorage.setItem("role", decode.role);
+                localStorage.setItem("name", decode.fullname);
                 if (decode.role === "SUPER_ADMIN") {
                     navigate("/admin/homeAdmin");
+                    notifySuccess('Đăng nhập thành công!');
+                } else if (decode.role === "SUPER_MANAGER") {
+                    navigate("/admin/manageUser"); 
                     notifySuccess('Đăng nhập thành công!');
                 } else {
                     navigate("/403");
@@ -281,7 +285,7 @@ const Login = () => {
             <SignInContainer direction="column" justifyContent="space-between">
                 <ParticlesOverlay ref={particlesRef} />
                 <AnimatedSecurityIcon />
-                {isLoading && <Loading />}
+                {isLoading && <Loading fullScreen={true} color="primary" size={60} />}
                 <Card variant="outlined">
                     <Box
                         sx={{
