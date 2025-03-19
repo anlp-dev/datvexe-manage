@@ -15,6 +15,7 @@ import VehicleManagement from "./VehicleManagement.jsx";
 import PaymentManagementDashboard from "./PaymentManagement.jsx";
 import ReportDashboard from "./ReportDashboard.jsx";
 import DiscountManagement from "./DiscountManagement.jsx";
+import ChatInterface from "./ChatInterface.jsx";
 
 
 export default function Dashboard() {
@@ -68,6 +69,11 @@ export default function Dashboard() {
                     <Route path="/payment" element={
                         <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_MANAGER"]}>
                             <PaymentManagementDashboard/>
+                        </RoleBasedRoute>
+                    }/>
+                    <Route path="/chat" element={
+                        <RoleBasedRoute allowedRoles={["SUPER_ADMIN", "SUPER_MANAGER"]}>
+                            <ChatInterface/>
                         </RoleBasedRoute>
                     }/>
                     <Route path="/report" element={

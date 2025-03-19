@@ -20,6 +20,7 @@ import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
 import PaymentIcon from '@mui/icons-material/Payment';
 import FlagIcon from '@mui/icons-material/Flag';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import ChatIcon from '@mui/icons-material/Chat';
 import {useLocation} from "react-router-dom";
 import { useEffect, useState } from 'react';
 
@@ -36,6 +37,7 @@ const getMenuItems = (userRole) => {
         {text: 'Quản lý xe', icon: <DepartureBoardIcon/>, path: "vehicle", roles: ["SUPER_ADMIN", "SUPER_MANAGER"]},
         {text: 'Quản lý thanh toán', icon: <PaymentIcon/>, path: "payment", roles: ["SUPER_ADMIN", "SUPER_MANAGER"]},
         {text: 'Quản lý mã giảm giá', icon: <LocalOfferIcon/>, path: "discount", roles: ["SUPER_ADMIN", "SUPER_MANAGER"]},
+        {text: 'Tin nhắn người dùng', icon: <ChatIcon/>, path: "chat", roles: ["SUPER_ADMIN", "SUPER_MANAGER"]},
         {text: 'Báo cáo, thống kê', icon: <FlagIcon/>, path: "report", roles: ["SUPER_ADMIN", "SUPER_MANAGER"]},
     ];
 
