@@ -343,7 +343,7 @@ function ReportsDashboard() {
                                                         </Box>
                                                     </TableCell>
                                                     <TableCell align="right" sx={{ color: theme.palette.error.main }}>
-                                                        {route.doanhThuMat.toLocaleString()}đ
+                                                        {formatCurrency(route.doanhThuMat)}
                                                     </TableCell>
                                                     <TableCell>
                                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>

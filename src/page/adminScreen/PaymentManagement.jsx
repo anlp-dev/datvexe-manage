@@ -55,6 +55,7 @@ import {
   notifySuccess,
 } from "../../components/notification/ToastNotification.jsx";
 import exportToExcel from "../../utils/exportReport.jsx";
+import axios from "axios";
 
 // Styled components
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -268,12 +269,12 @@ function PaymentManagementDashboard() {
     setReceiptOpen(true);
   };
 
-  const handleDowloadFilePdf = async (payment) => {
+  const handleDownloadFilePdf = async (payment) => {
     try {
       setIsLoading(true);
       setLoadingMessage("Đang tải xuống biên lai...");
+
       let dataReq = {
-        fileName: `hoa_don_${payment.bookingCode}.pdf`,
         datePay: payment.paymentDate,
         bookingCode: payment.bookingCode,
         customerName: payment.customerName,
@@ -282,20 +283,35 @@ function PaymentManagementDashboard() {
         status: payment.status,
         totalPrice: payment.amount,
       };
-      const response = await PaymentService.dowloadFilePdf(dataReq);
-      if (response.ok) {
-        notifySuccess(
-          "Tải xuống file thành công, file của bạn được lưu trong thư mục tải xuống!"
-        );
+
+      const response = await axios.post("http://localhost:9999/admin/payment/download-pdf", dataReq, {
+        responseType: "blob", // Quan trọng: Nhận dữ liệu dưới dạng binary
+      });
+
+      if (response.status === 200) {
+        console.log(response.data)
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        console.log(blob)
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `hoa_don_${payment.bookingCode}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       } else {
-        notifyError("Tải xuống file thất bại !");
+        notifyError("Tải xuống file thất bại!");
       }
     } catch (e) {
-      console.log(e.message);
+      console.error("Lỗi tải file:", e);
+      notifyError("Tải xuống file thất bại!");
     } finally {
       setIsLoading(false);
     }
   };
+
+
 
   const handleCloseReceipt = () => {
     setReceiptOpen(false);
@@ -740,13 +756,12 @@ function PaymentManagementDashboard() {
                                   )}
                                 </TableCell>
                                 <TableCell sx={{ fontWeight: "bold" }}>
-                                  {revenueData.daily
+                                  {formatCurrency(revenueData.daily
                                     .reduce(
                                       (sum, item) => sum + item.amount,
                                       0
                                     )
-                                    .toLocaleString()}{" "}
-                                  đ
+                                  )}
                                 </TableCell>
                               </TableRow>
                             </>
@@ -811,13 +826,12 @@ function PaymentManagementDashboard() {
                                   )}
                                 </TableCell>
                                 <TableCell sx={{ fontWeight: "bold" }}>
-                                  {revenueData.routes
+                                  {formatCurrency(revenueData.routes
                                     .reduce(
                                       (sum, item) => sum + item.amount,
                                       0
                                     )
-                                    .toLocaleString()}{" "}
-                                  đ
+                                  )}
                                 </TableCell>
                               </TableRow>
                             </>
@@ -929,7 +943,7 @@ function PaymentManagementDashboard() {
               variant="contained"
               color="primary"
               startIcon={<FileDownloadIcon />}
-              onClick={() => handleDowloadFilePdf(selectedPayment)}
+              onClick={() => handleDownloadFilePdf(selectedPayment)}
               disabled={isLoading}
             >
               Tải biên lai

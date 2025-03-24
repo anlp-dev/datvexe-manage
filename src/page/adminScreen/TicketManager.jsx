@@ -552,20 +552,6 @@ function TicketManagementDashboard() {
                                                         <PrintIcon />
                                                     </IconButton>
                                                 </Tooltip>
-                                                <Tooltip title="Xuất hóa đơn">
-                                                    <IconButton
-                                                        color="primary"
-                                                        size="small"
-                                                        onClick={() => showSnackbar('Hóa đơn đã được xuất', 'success')}
-                                                        sx={{
-                                                            '&:hover': {
-                                                                backgroundColor: alpha("#3f51b5", 0.1),
-                                                            },
-                                                        }}
-                                                    >
-                                                        <ReceiptIcon />
-                                                    </IconButton>
-                                                </Tooltip>
                                             </TableCell>
                                         </TableRow>
                                     ))

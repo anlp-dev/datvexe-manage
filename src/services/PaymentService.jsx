@@ -1,4 +1,4 @@
-import { fetchWithAuth, fetchExportFile, handleApiError } from "../utils/fetchUtils";
+import { fetchWithAuth, handleApiError } from "../utils/fetchUtils";
 
 /**
  * Service for handling payment-related API calls
@@ -31,7 +31,7 @@ class PaymentService {
 
   static async dowloadFilePdf(dataReq){
     try{
-      return await fetchExportFile('/admin/payment/download-pdf', 'POST', dataReq);
+      return await fetchWithAuth('/admin/payment/download-pdf', 'POST', dataReq);
     }catch(e){
       return handleApiError(e);
     }
