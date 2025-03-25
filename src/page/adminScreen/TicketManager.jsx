@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Box, Button, TextField, Typography, Paper, Grid, Table,
     TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -15,16 +15,19 @@ import {
     Cancel as CancelIcon, AccessTime as TimeIcon,
     LocalActivity as TicketIcon, Close as CloseIcon,
     ConfirmationNumber as TicketIcon2,
+    TrendingUp as TrendingUpIcon,
     Payment as PaymentIcon,
-    EventBusy as CancelledIcon
+    EventBusy as CancelledIcon, TrendingUp
 } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
+import {styled} from '@mui/material/styles';
 import TicketService from '../../services/TicketService';
-import { formatCurrency } from '../../utils/format';
+import {formatCurrency} from '../../utils/format';
 import Loading from "../../components/loading/Loading.jsx";
+import EditIcon from '@mui/icons-material/Edit';
+import {notifyError, notifySuccess} from "../../components/notification/ToastNotification.jsx";
 
 // Enhanced styled components
-const StyledCard = styled(Card)(({ theme }) => ({
+const StyledCard = styled(Card)(({theme}) => ({
     overflow: "hidden",
     marginTop: 60,
     borderRadius: theme.spacing(2),
@@ -37,7 +40,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
     },
 }));
 
-const StatsCard = styled(Paper)(({ theme, bgcolor }) => ({
+const StatsCard = styled(Paper)(({theme, bgcolor}) => ({
     padding: theme.spacing(3),
     borderRadius: theme.spacing(2),
     backgroundColor: bgcolor,
@@ -66,7 +69,7 @@ const StatsCard = styled(Paper)(({ theme, bgcolor }) => ({
     },
 }));
 
-const SearchField = styled(TextField)(({ theme }) => ({
+const SearchField = styled(TextField)(({theme}) => ({
     "& .MuiOutlinedInput-root": {
         borderRadius: theme.spacing(3),
         backgroundColor: alpha(theme.palette.common.white, 0.9),
@@ -157,9 +160,9 @@ const initialTickets = [
 
 // Trip options
 const tripOptions = [
-    { code: 'HN-LC-001', name: 'Chuyến sáng HN-LC' },
-    { code: 'HN-LC-002', name: 'Chuyến chiều HN-LC' },
-    { code: 'LC-HN-001', name: 'Chuyến đêm LC-HN' }
+    {code: 'HN-LC-001', name: 'Chuyến sáng HN-LC'},
+    {code: 'HN-LC-002', name: 'Chuyến chiều HN-LC'},
+    {code: 'LC-HN-001', name: 'Chuyến đêm LC-HN'}
 ];
 
 function TicketManagementDashboard() {
@@ -169,7 +172,7 @@ function TicketManagementDashboard() {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterOpen, setFilterOpen] = useState(false);
-    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const [snackbar, setSnackbar] = useState({open: false, message: '', severity: 'success'});
     const [filters, setFilters] = useState({
         startDate: null, endDate: null, status: '', trip: '', paymentMethod: ''
     });
@@ -183,24 +186,24 @@ function TicketManagementDashboard() {
         try {
             setLoading(true);
             const response = await TicketService.getAdminTickets();
-            if(response.status === 200){
-              const data = response.data;
-              const formattedTickets = data.map(ticket => ({
-                  id: ticket._id,
-                  bookingCode: ticket.code,
-                  customerName: ticket.user.fullname,
-                  phone: ticket.user.phone,
-                  tripCode: ticket.busSchedule.tripCode,
-                  tripName: ticket.busSchedule.route,
-                  departureTime: ticket.departureTime,
-                  seats: ticket.seats,
-                  totalAmount: ticket.totalPrice,
-                  paymentMethod: ticket.paymentMethod,
-                  status: mapStatus(ticket.status),
-                  bookingDate: ticket.createdAt
-              }));
-              setTickets(formattedTickets);
-              setFilteredTickets(formattedTickets);
+            if (response.status === 200) {
+                const data = response.data;
+                const formattedTickets = data.map(ticket => ({
+                    id: ticket._id,
+                    bookingCode: ticket.code,
+                    customerName: ticket.user.fullname,
+                    phone: ticket.user.phone,
+                    tripCode: ticket.busSchedule.tripCode,
+                    tripName: ticket.busSchedule.route,
+                    departureTime: ticket.departureTime,
+                    seats: ticket.seats,
+                    totalAmount: ticket.totalPrice,
+                    paymentMethod: ticket.paymentMethod,
+                    status: mapStatus(ticket.status),
+                    bookingDate: ticket.createdAt
+                }));
+                setTickets(formattedTickets);
+                setFilteredTickets(formattedTickets);
             }
         } catch (error) {
             console.error('Error fetching tickets:', error);
@@ -216,11 +219,16 @@ function TicketManagementDashboard() {
 
     const mapStatus = (status) => {
         switch (status) {
-            case 'pending': return 'Chờ thanh toán';
-            case 'payed': return 'Đã thanh toán';
-            case 'completed': return 'Hoàn thành';
-            case 'cancelled': return 'Hủy';
-            default: return status;
+            case 'pending':
+                return 'Chờ thanh toán';
+            case 'payed':
+                return 'Đã thanh toán';
+            case 'completed':
+                return 'Hoàn thành';
+            case 'cancelled':
+                return 'Hủy';
+            default:
+                return status;
         }
     };
 
@@ -269,6 +277,41 @@ function TicketManagementDashboard() {
         });
     };
 
+    const handleChangeStatus = async (ticket) => {
+        try {
+            // Hiển thị hộp thoại xác nhận
+            const isConfirmed = window.confirm("Bạn có chắc muốn thay đổi trạng thái thanh toán?");
+            if (!isConfirmed) return;
+
+            console.log(ticket);
+            let dataReq = {};
+
+            switch (ticket?.status) {
+                case "Chờ thanh toán":
+                    dataReq.id = ticket.id;
+                    dataReq.status = "payed";
+                    break;
+                case "Đã thanh toán":
+                    dataReq.id = ticket.id;
+                    dataReq.status = "pending";
+                    break;
+                default:
+                    console.log("Error");
+                    return;
+            }
+
+            const response = await TicketService.updateStatusTickets(dataReq);
+            if (response.status === 200) {
+                notifySuccess(response.message);
+                fetchTickets();
+            } else {
+                notifyError(response.message);
+            }
+        } catch (e) {
+            console.log(e.message);
+        }
+    };
+
     const formatTime = date => {
         const d = new Date(date);
         return d.toLocaleTimeString('vi-VN', {
@@ -278,32 +321,44 @@ function TicketManagementDashboard() {
     };
 
     const getStatusProperties = status => {
-        const props = { color: 'default', icon: null };
+        const props = {color: 'default', icon: null};
         switch (status) {
-            case 'Chờ thanh toán': props.color = 'warning'; props.icon = <TimeIcon />; break;
-            case 'Đã thanh toán': props.color = 'info'; props.icon = <CheckCircleIcon />; break;
-            case 'Hoàn thành': props.color = 'success'; props.icon = <CheckCircleIcon />; break;
-            case 'Hủy': props.color = 'error'; props.icon = <CancelIcon />; break;
+            case 'Chờ thanh toán':
+                props.color = 'warning';
+                props.icon = <TimeIcon/>;
+                break;
+            case 'Đã thanh toán':
+                props.color = 'info';
+                props.icon = <CheckCircleIcon/>;
+                break;
+            case 'Hoàn thành':
+                props.color = 'success';
+                props.icon = <CheckCircleIcon/>;
+                break;
+            case 'Hủy':
+                props.color = 'error';
+                props.icon = <CancelIcon/>;
+                break;
         }
         return props;
     };
 
     const resetFilters = () => {
-        setFilters({ startDate: null, endDate: null, status: '', trip: '', paymentMethod: '' });
+        setFilters({startDate: null, endDate: null, status: '', trip: '', paymentMethod: ''});
         setSearchTerm('');
         setFilterOpen(false);
     };
 
     const showSnackbar = (message, severity) => {
-        setSnackbar({ open: true, message, severity });
+        setSnackbar({open: true, message, severity});
     };
 
     return (
         <Container maxWidth={false}>
-        {loading && (
-                <Loading fullScreen={true} />
+            {loading && (
+                <Loading fullScreen={true}/>
             )}
-            <Box sx={{ mb: 5, display: "flex", alignItems: "center" }}>
+            <Box sx={{mb: 5, display: "flex", alignItems: "center"}}>
                 <Typography
                     variant="h4"
                     sx={{
@@ -318,14 +373,14 @@ function TicketManagementDashboard() {
             </Box>
 
             {/* Statistics Cards */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid container spacing={3} sx={{mb: 4}}>
                 <Grid item xs={12} sm={4}>
                     <StatsCard bgcolor="#3f51b5">
                         <Box>
-                            <Typography variant="subtitle2" sx={{ opacity: 0.8, mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{opacity: 0.8, mb: 1}}>
                                 Tổng số vé
                             </Typography>
-                            <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                            <Typography variant="h3" sx={{fontWeight: 700}}>
                                 {tickets.length}
                             </Typography>
                         </Box>
@@ -337,17 +392,17 @@ function TicketManagementDashboard() {
                                 boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
                             }}
                         >
-                            <TicketIcon2 fontSize="large" />
+                            <TicketIcon2 fontSize="large"/>
                         </Avatar>
                     </StatsCard>
                 </Grid>
                 <Grid item xs={12} sm={4}>
                     <StatsCard bgcolor="#4caf50">
                         <Box>
-                            <Typography variant="subtitle2" sx={{ opacity: 0.8, mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{opacity: 0.8, mb: 1}}>
                                 Vé đã thanh toán
                             </Typography>
-                            <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                            <Typography variant="h3" sx={{fontWeight: 700}}>
                                 {tickets.filter(t => t.status === 'Đã thanh toán' || t.status === 'Hoàn thành').length}
                             </Typography>
                         </Box>
@@ -359,17 +414,17 @@ function TicketManagementDashboard() {
                                 boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
                             }}
                         >
-                            <PaymentIcon fontSize="large" />
+                            <PaymentIcon fontSize="large"/>
                         </Avatar>
                     </StatsCard>
                 </Grid>
                 <Grid item xs={12} sm={4}>
                     <StatsCard bgcolor="#ff9800">
                         <Box>
-                            <Typography variant="subtitle2" sx={{ opacity: 0.8, mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{opacity: 0.8, mb: 1}}>
                                 Vé chờ thanh toán
                             </Typography>
-                            <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                            <Typography variant="h3" sx={{fontWeight: 700}}>
                                 {tickets.filter(t => t.status === 'Chờ thanh toán').length}
                             </Typography>
                         </Box>
@@ -381,7 +436,7 @@ function TicketManagementDashboard() {
                                 boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
                             }}
                         >
-                            <TimeIcon fontSize="large" />
+                            <TimeIcon fontSize="large"/>
                         </Avatar>
                     </StatsCard>
                 </Grid>
@@ -391,15 +446,15 @@ function TicketManagementDashboard() {
             <StyledCard>
                 <CardHeader
                     title={
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        <Typography variant="h6" sx={{fontWeight: 600}}>
                             Danh sách vé
                         </Typography>
                     }
                     action={
-                        <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Box sx={{display: 'flex', gap: 2}}>
                             <Button
                                 variant="outlined"
-                                startIcon={<FilterIcon />}
+                                startIcon={<FilterIcon/>}
                                 onClick={() => setFilterOpen(true)}
                                 sx={{
                                     borderRadius: 3,
@@ -413,18 +468,18 @@ function TicketManagementDashboard() {
                                         size="small"
                                         label={Object.values(filters).filter(x => x !== '' && x !== null).length}
                                         color="primary"
-                                        sx={{ ml: 1 }}
+                                        sx={{ml: 1}}
                                     />
                                 )}
                             </Button>
                         </Box>
                     }
-                    sx={{ px: 3, py: 2.5 }}
+                    sx={{px: 3, py: 2.5}}
                 />
-                <Divider />
-                <CardContent sx={{ p: 3 }}>
+                <Divider/>
+                <CardContent sx={{p: 3}}>
                     {/* Search Bar */}
-                    <Box sx={{ display: "flex", mb: 4 }}>
+                    <Box sx={{display: "flex", mb: 4}}>
                         <SearchField
                             size="small"
                             placeholder="Tìm kiếm theo mã vé, tên KH hoặc SĐT..."
@@ -432,11 +487,11 @@ function TicketManagementDashboard() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             InputProps={{
                                 startAdornment: (
-                                    <SearchIcon sx={{ color: "text.secondary", mr: 1 }} />
+                                    <SearchIcon sx={{color: "text.secondary", mr: 1}}/>
                                 ),
                             }}
                             fullWidth
-                            sx={{ mr: 2, maxWidth: 300 }}
+                            sx={{mr: 2, maxWidth: 300}}
                         />
                     </Box>
 
@@ -452,19 +507,19 @@ function TicketManagementDashboard() {
                     >
                         <Table size="medium">
                             <TableHead>
-                                <TableRow sx={{ backgroundColor: "rgba(0,0,0,0.02)" }}>
-                                    <TableCell sx={{ fontWeight: 600 }}>Mã đặt vé</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Khách hàng</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Chuyến xe</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Ngày khởi hành</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Ghế</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Tổng tiền</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Trạng thái</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 600 }}>Thao tác</TableCell>
+                                <TableRow sx={{backgroundColor: "rgba(0,0,0,0.02)"}}>
+                                    <TableCell sx={{fontWeight: 600}}>Mã đặt vé</TableCell>
+                                    <TableCell sx={{fontWeight: 600}}>Khách hàng</TableCell>
+                                    <TableCell sx={{fontWeight: 600}}>Chuyến xe</TableCell>
+                                    <TableCell sx={{fontWeight: 600}}>Ngày khởi hành</TableCell>
+                                    <TableCell sx={{fontWeight: 600}}>Ghế</TableCell>
+                                    <TableCell sx={{fontWeight: 600}}>Tổng tiền</TableCell>
+                                    <TableCell sx={{fontWeight: 600}}>Trạng thái</TableCell>
+                                    <TableCell align="center" sx={{fontWeight: 600}}>Thao tác</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                 {filteredTickets.length > 0 ? (
+                                {filteredTickets.length > 0 ? (
                                     filteredTickets.map(ticket => (
                                         <TableRow
                                             key={ticket.id}
@@ -477,7 +532,7 @@ function TicketManagementDashboard() {
                                         >
                                             <TableCell>{ticket.bookingCode}</TableCell>
                                             <TableCell>
-                                                <Box sx={{ display: "flex", alignItems: "center" }}>
+                                                <Box sx={{display: "flex", alignItems: "center"}}>
                                                     <Avatar
                                                         sx={{
                                                             mr: 2,
@@ -499,8 +554,9 @@ function TicketManagementDashboard() {
                                             </TableCell>
                                             <TableCell>{ticket.tripName}</TableCell>
                                             <TableCell>
-                                                {formatDate(ticket.departureTime)}<br />
-                                                <Typography variant="caption">{formatTime(ticket.departureTime)}</Typography>
+                                                {formatDate(ticket.departureTime)}<br/>
+                                                <Typography
+                                                    variant="caption">{formatTime(ticket.departureTime)}</Typography>
                                             </TableCell>
                                             <TableCell>
                                                 {ticket.seats.map(seat => (
@@ -549,21 +605,57 @@ function TicketManagementDashboard() {
                                                             },
                                                         }}
                                                     >
-                                                        <PrintIcon />
+                                                        <PrintIcon/>
                                                     </IconButton>
                                                 </Tooltip>
+                                                {ticket?.status === "Chờ thanh toán" ? (
+                                                    <Tooltip title="Chuyển sang trạng thái đã thanh toán">
+                                                        <IconButton
+                                                            color="info"
+                                                            size="small"
+                                                            onClick={() =>
+                                                                handleChangeStatus(ticket)
+                                                            }
+                                                            sx={{
+                                                                '&:hover': {
+                                                                    backgroundColor: alpha("#2196f3", 0.1),
+                                                                },
+                                                            }}
+                                                        >
+                                                            <TrendingUpIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>) : ""}
+                                                {ticket?.status === "Đã thanh toán" ?(
+                                                    <Tooltip title="Chuyển sang trạng thái chưa thanh toán">
+                                                        <IconButton
+                                                            color="info"
+                                                            size="small"
+                                                            onClick={() =>
+                                                                handleChangeStatus(ticket)
+                                                            }
+                                                            sx={{
+                                                                '&:hover': {
+                                                                    backgroundColor: alpha("#2196f3", 0.1),
+                                                                },
+                                                            }}
+                                                        >
+                                                            <TrendingUpIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                ): ""}
+
                                             </TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                                        <TableCell colSpan={8} align="center" sx={{py: 3}}>
                                             <Typography variant="subtitle1">Không tìm thấy vé nào phù hợp</Typography>
                                             <Button
                                                 variant="text"
-                                                startIcon={<ClearIcon />}
+                                                startIcon={<ClearIcon/>}
                                                 onClick={resetFilters}
-                                                sx={{ mt: 1 }}
+                                                sx={{mt: 1}}
                                             >
                                                 Xóa bộ lọc
                                             </Button>
@@ -581,13 +673,14 @@ function TicketManagementDashboard() {
                 <DialogTitle>
                     Bộ lọc
                     {Object.values(filters).some(x => x !== '' && x !== null) && (
-                        <Button size="small" variant="text" onClick={resetFilters} startIcon={<ClearIcon />} sx={{ ml: 2 }}>
+                        <Button size="small" variant="text" onClick={resetFilters} startIcon={<ClearIcon/>}
+                                sx={{ml: 2}}>
                             Xóa bộ lọc
                         </Button>
                     )}
                 </DialogTitle>
                 <DialogContent dividers>
-                    <Box sx={{ my: 2 }}><Divider /></Box>
+                    <Box sx={{my: 2}}><Divider/></Box>
 
                     <Grid container spacing={2}>
                         <Grid item xs={6}>
@@ -632,41 +725,44 @@ function TicketManagementDashboard() {
             <Dialog open={printOpen} onClose={() => setPrintOpen(false)} maxWidth="md" fullWidth>
                 <DialogTitle>
                     <Box display="flex" alignItems="center">
-                        <TicketIcon sx={{ mr: 1 }} />
+                        <TicketIcon sx={{mr: 1}}/>
                         Vé điện tử
                         <IconButton
                             onClick={() => setPrintOpen(false)}
-                            sx={{ position: 'absolute', right: 8, top: 8 }}
+                            sx={{position: 'absolute', right: 8, top: 8}}
                         >
-                            <CloseIcon />
+                            <CloseIcon/>
                         </IconButton>
                     </Box>
                 </DialogTitle>
                 <DialogContent dividers>
                     {selectedTicket && (
-                        <Box id="printable-ticket" sx={{ p: 2 }}>
-                            <Box sx={{ textAlign: 'center', mb: 3 }}>
+                        <Box id="printable-ticket" sx={{p: 2}}>
+                            <Box sx={{textAlign: 'center', mb: 3}}>
                                 <Typography variant="h5" gutterBottom>Vé xe khách</Typography>
                                 <Typography variant="h6">Tuyến Hà Nội ↔ Lào Cai</Typography>
                                 <Chip
                                     label={selectedTicket.status}
                                     color={getStatusProperties(selectedTicket.status).color}
-                                    sx={{ mt: 2 }}
+                                    sx={{mt: 2}}
                                 />
                             </Box>
 
                             <Grid container spacing={2}>
                                 <Grid item xs={12} sm={6}>
-                                    <Typography variant="subtitle2" color="text.secondary">Thông tin khách hàng</Typography>
-                                    <Paper variant="outlined" sx={{ p: 2 }}>
-                                        <Typography variant="body1"><strong>{selectedTicket.customerName}</strong></Typography>
+                                    <Typography variant="subtitle2" color="text.secondary">Thông tin khách
+                                        hàng</Typography>
+                                    <Paper variant="outlined" sx={{p: 2}}>
+                                        <Typography
+                                            variant="body1"><strong>{selectedTicket.customerName}</strong></Typography>
                                         <Typography variant="body2">SĐT: {selectedTicket.phone}</Typography>
                                     </Paper>
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <Typography variant="subtitle2" color="text.secondary">Thông tin vé</Typography>
-                                    <Paper variant="outlined" sx={{ p: 2 }}>
-                                        <Typography variant="body1"><strong>{selectedTicket.tripName}</strong></Typography>
+                                    <Paper variant="outlined" sx={{p: 2}}>
+                                        <Typography
+                                            variant="body1"><strong>{selectedTicket.tripName}</strong></Typography>
                                         <Typography variant="body2">
                                             Ngày: {formatDate(selectedTicket.departureTime)}
                                         </Typography>
@@ -676,15 +772,19 @@ function TicketManagementDashboard() {
                                     </Paper>
                                 </Grid>
                                 <Grid item xs={12}>
-                                    <Typography variant="subtitle2" color="text.secondary">Thông tin ghế & thanh toán</Typography>
-                                    <Paper variant="outlined" sx={{ p: 2 }}>
+                                    <Typography variant="subtitle2" color="text.secondary">Thông tin ghế & thanh
+                                        toán</Typography>
+                                    <Paper variant="outlined" sx={{p: 2}}>
                                         <Grid container spacing={2}>
                                             <Grid item xs={6}>
-                                                <Typography variant="body2">Số ghế: {selectedTicket.seats.join(', ')}</Typography>
-                                                <Typography variant="body2">Số lượng: {selectedTicket.seats.length} ghế</Typography>
-                                                <Typography variant="body2">Thanh toán: {selectedTicket.paymentMethod}</Typography>
+                                                <Typography variant="body2">Số
+                                                    ghế: {selectedTicket.seats.join(', ')}</Typography>
+                                                <Typography variant="body2">Số
+                                                    lượng: {selectedTicket.seats.length} ghế</Typography>
+                                                <Typography variant="body2">Thanh
+                                                    toán: {selectedTicket.paymentMethod}</Typography>
                                             </Grid>
-                                            <Grid item xs={6} sx={{ textAlign: 'right' }}>
+                                            <Grid item xs={6} sx={{textAlign: 'right'}}>
                                                 <Typography variant="body1"><strong>Tổng tiền:</strong></Typography>
                                                 <Typography variant="h6" color="primary">
                                                     {selectedTicket.totalAmount.toLocaleString()} VNĐ
@@ -701,7 +801,7 @@ function TicketManagementDashboard() {
                     <Button onClick={() => setPrintOpen(false)}>Đóng</Button>
                     <Button
                         variant="contained"
-                        startIcon={<PrintIcon />}
+                        startIcon={<PrintIcon/>}
                         onClick={() => {
                             window.print();
                             showSnackbar('Vé đã được gửi đến máy in', 'success');
@@ -718,7 +818,7 @@ function TicketManagementDashboard() {
                 open={snackbar.open}
                 autoHideDuration={3000}
                 onClose={() => setSnackbar({...snackbar, open: false})}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
             >
                 <Alert
                     onClose={() => setSnackbar({...snackbar, open: false})}
