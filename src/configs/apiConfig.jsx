@@ -11,7 +11,7 @@ const getAuthHeaders = (token) => ({
 });
 
 const apiConfig = {
-    baseUrl: API_LOCAL,
+    baseUrl: API_BASE_URL_DEPLOY,
     headers,
     getAuthHeaders,
 };
