@@ -8,6 +8,13 @@ const TicketService = {
       throw handleApiError(error);
     }
   },
+  async updateStatusTickets(dataReq) {
+    try {
+      return await fetchWithAuth("/admin/ticket", "PUT", dataReq);
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
 };
 
 export default TicketService;
