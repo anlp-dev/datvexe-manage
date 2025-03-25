@@ -284,7 +284,7 @@ function PaymentManagementDashboard() {
         totalPrice: payment.amount,
       };
 
-      const response = await axios.post("http://localhost:9999/admin/payment/download-pdf", dataReq, {
+      const response = await axios.post("https://api.datvexe-manage.id.vn/admin/payment/download-pdf", dataReq, {
         responseType: "blob", // Quan trọng: Nhận dữ liệu dưới dạng binary
       });
 
